@@ -1,0 +1,6 @@
+# Vertex Swarm Challenge 2026 — Warm Up: Serve and Protect Bastion (Python + Drones)
+# Primary: AirSim + Tashi Vertex (stateful_handshake_mission.py)
+# Optional: MQTT path (drone_a.py, drone_b.py) — no simulator
+
+airsim>=1.8.1
+paho-mqtt>=2.1.0
