@@ -1,6 +1,6 @@
 """
 Launch Serve and Protect Bastion swarm: N sentries + M drones + 1 spectator.
-For BUIDL submission, wire to Vertex 2.0; here we use MQTT (FoxMQ-compatible) for local demo.
+Use FoxMQ (Vertex-backed MQTT) via --start-broker-foxmq for hackathon submission; or any MQTT broker (e.g. Mosquitto) for local demo.
 """
 
 import argparse

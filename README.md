@@ -133,20 +133,20 @@ python stateful_handshake_mission.py
 
 ### 2. Track 1 (Serve and Protect Bastion)
 
-**Step 1 — Start an MQTT broker** (if not already running), e.g.:
+**Step 1 — Start a broker** (if not already running):
 
-```bash
-mosquitto -v
-# Or with Docker: docker run -p 1883:1883 eclipse-mosquitto
-```
+- **FoxMQ (Vertex) — for hackathon:** Download [FoxMQ](https://github.com/tashigg/foxmq/releases), put the binary in `track1_serve_and_protect/foxmq_broker/`, then use `--start-broker-foxmq` below (see [track1_serve_and_protect/scripts/README_FOXMQ.md](track1_serve_and_protect/scripts/README_FOXMQ.md)).
+- **Mosquitto:** `mosquitto -v` or `docker run -p 1883:1883 eclipse-mosquitto`.
 
 **Step 2 — Install and run the swarm:**
 
 ```bash
 cd track1_serve_and_protect
 pip install -r requirements.txt
-# If you have Docker, this starts the MQTT broker and the swarm in one go
-# (use default broker 127.0.0.1; if BASTION_BROKER is set, add --broker 127.0.0.1):
+# With FoxMQ (Vertex): start FoxMQ and swarm in one go (binary must be in foxmq_broker/):
+#   python run_swarm.py --sentries 2 --drones 2 --start-broker-foxmq
+# With Docker (Mosquitto): python run_swarm.py --sentries 2 --drones 2 --start-broker-docker
+# With broker already running:
 python run_swarm.py --sentries 2 --drones 2 --start-broker-docker
 # Otherwise start a broker first (e.g. mosquitto -v) in another terminal, then:
 # python run_swarm.py --sentries 2 --drones 2

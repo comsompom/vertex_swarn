@@ -13,6 +13,9 @@ __pycache__/
 .venv/
 venv/
 
+# FoxMQ generated config and keys (machine-specific)
+track1_serve_and_protect/foxmq_broker/foxmq.d/
+
 # IDE
 .idea/
 .vscode/

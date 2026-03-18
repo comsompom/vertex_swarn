@@ -28,8 +28,9 @@ class TestRunSwarmLogic:
             node_id = f"drone-{i+1}"
             assert node_id in ("drone-1", "drone-2")
 
+    @patch("run_swarm.broker_reachable", return_value=True)
     @patch("run_swarm.subprocess.Popen")
-    def test_main_launches_sentries_drones_spectator(self, mock_popen):
+    def test_main_launches_sentries_drones_spectator(self, mock_popen, mock_broker):
         mock_proc = MagicMock(pid=12345)
         mock_proc.poll.return_value = None
         mock_proc.terminate = MagicMock()
@@ -51,3 +52,8 @@ class TestRunSwarmLogic:
         assert "node_drone.py" in cmd_drone
         assert "drone-1" in cmd_drone
         assert "node_spectator.py" in cmd_spectator
+
+    def test_start_broker_foxmq_returns_false_when_script_missing(self):
+        """start_broker_foxmq returns False when scripts/start_foxmq.py does not exist."""
+        with patch("run_swarm.os.path.isfile", return_value=False):
+            assert run_swarm.start_broker_foxmq(1883) is False
