@@ -29,8 +29,7 @@ vertex_swarn/
 ├── rules.md                  # Submission rules (one Warm-Up, one main track)
 ├── HACKATHON_PREFLIGHT.md    # Pre-flight checklist (Discord, handshake, bounty)
 ├── VIDEO_RECORDING_GUIDE.md  # How to record the presentation video
-├── pre_flight.md             # Pre-flight email content
-├── warm_up.md                # Warm-up letter / goals
+├── PRESENTATION.html         # Standalone slide deck for the video guide (open in browser)
 ├── suggeestion.md            # Strategy and project ideas
 │
 ├── warm_up/                  # Warm Up: Stateful Handshake (Python + Drones)
@@ -220,6 +219,8 @@ Environment variables (or edit `track1_serve_and_protect/config.py`):
 | [warm_up/README.md](warm_up/README.md) | Warm Up: setup, AirSim, MQTT, standalone demo. |
 | [track1_serve_and_protect/README.md](track1_serve_and_protect/README.md) | Track 1: features, run, dashboard, tests. |
 | [track1_serve_and_protect/demo_script.md](track1_serve_and_protect/demo_script.md) | Step-by-step demo for pitch or video. |
+| [VIDEO_RECORDING_GUIDE.md](VIDEO_RECORDING_GUIDE.md) | How to record the presentation video. |
+| [PRESENTATION.html](PRESENTATION.html) | Standalone slide deck for the video guide (open in browser). |
 
 ---
 

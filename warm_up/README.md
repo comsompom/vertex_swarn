@@ -2,7 +2,14 @@
 
 **Vertex Swarm Challenge 2026** · **Python + Drones** · Aligned with the [AirSim + Vertex starter kit](https://github.com/tashigit/airsim-vertex-starter-kit).
 
-Two drones (Drone1, Drone2) use **Tashi Vertex** P2P consensus and **Microsoft AirSim** to: discover each other, sync state (`peer_id`, `last_seen_ms`, `role`, `status`), send heartbeats, toggle role (Drone1 → "scout", Drone2 mirrors in &lt;1s), and support failure recovery. Meets the [Warm Up](https://github.com/tashigit/airsim-vertex-starter-kit) and track acceptance criteria.
+Two drones (Drone1, Drone2) discover each other, sync state (`peer_id`, `last_seen_ms`, `role`, `status`), send heartbeats, toggle role (Drone1 → "scout", Drone2 mirrors in &lt;1s), and support failure recovery. Meets the [Warm Up](https://github.com/tashigit/airsim-vertex-starter-kit) and track acceptance criteria.
+
+**Recommended (no AirSim):** Run the standalone demo — no simulator or broker required:
+```bash
+cd warm_up
+python handshake_demo.py
+```
+For MQTT or AirSim + Tashi Vertex, see below.
 
 ---
 
@@ -21,9 +28,11 @@ Track details: [DoraHacks Warm-Up](https://dorahacks.io/hackathon/global-vertex-
 
 ---
 
-## Prerequisites
+## Prerequisites (for AirSim path only)
 
-1. **AirSim** — Installed and running (Unreal Engine environment).  
+The **standalone demo** (`handshake_demo.py`) and **MQTT path** need no AirSim. The script `stateful_handshake_mission.py` is optional and requires:
+
+1. **AirSim** — Installed and running (Unreal Engine environment). The `airsim` Python package can be difficult to install on Windows; if you get `ModuleNotFoundError: airsim`, use `handshake_demo.py` instead.  
    - [AirSim docs](https://github.com/Microsoft/AirSim)
 2. **Tashi Vertex RS** — Local clone of [tashi-vertex-rs](https://github.com/tashigit/tashi-vertex-rs), built with examples:
    ```bash
@@ -92,13 +101,15 @@ Set the path to your built `tashi-vertex-rs` clone (default in code is `../tashi
   set TASHI_VERTEX_PATH=C:\path\to\tashi-vertex-rs    # Windows cmd
   ```
 
-### 3. Run the mission
+### 3. Run the mission (optional — AirSim path)
 
-With AirSim and the Unreal environment running:
+With AirSim and the Unreal environment running, and `airsim` installed:
 
 ```bash
 python stateful_handshake_mission.py
 ```
+
+If you get `ModuleNotFoundError: No module named 'airsim'`, use **`python handshake_demo.py`** instead for the warm-up (no AirSim required).
 
 ---
 
@@ -170,7 +181,6 @@ warm_up/
 
 ## References
 
-- [Warm up letter](../warm_up.md) — Pre-flight checklist; goal: Python + Drones.
 - [Track: Warm Up](../track.md) — Stateful Handshake acceptance criteria.
 - [AirSim + Vertex starter kit](https://github.com/tashigit/airsim-vertex-starter-kit) — Base for this warm up.
 - [Tashi Vertex RS](https://github.com/tashigit/tashi-vertex-rs) — P2P consensus engine (build and point `TASHI_VERTEX_PATH` here).
