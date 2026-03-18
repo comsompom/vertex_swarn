@@ -17,6 +17,7 @@ A peer-to-peer **military defence swarm**: perimeter sensors, sentry rovers, and
 - **P2P E-Stop:** A high-priority fault channel; one trigger freezes all nodes in under 50 ms (“hold fire”).
 - **Self-healing:** Heartbeats and stale-peer detection; when a node drops, sectors and tasks can be reallocated; relay chains can re-form when comms degrade.
 - **Chaos testing:** A chaos-monkey script kills random nodes so you can verify rebalance and E-Stop behavior under failure.
+- **Web dashboard:** A Flask app visualizes swarm state (nodes, roles, status, sector, battery) and E-Stop status in real time.
 
 ---
 
@@ -40,6 +41,7 @@ Edit `config.py` or use environment variables:
 
 - `BASTION_BROKER` — broker host (default `127.0.0.1`)
 - `BASTION_MQTT_PORT` — broker port (default `1883`)
+- `BASTION_DASHBOARD_PORT` — Flask dashboard HTTP port (default `5000`)
 
 Topics, heartbeat interval, and roles are defined in `config.py`.
 
@@ -52,6 +54,16 @@ python run_swarm.py --sentries 2 --drones 2
 ```
 
 This launches two sentry nodes (with sectors A1, A2), two drone nodes, and one spectator. The spectator prints the current swarm state every few seconds.
+
+### Web dashboard (Flask)
+
+To visualize the swarm in a browser, start the Flask dashboard (in a separate terminal):
+
+```bash
+python dashboard.py
+```
+
+Then open **http://127.0.0.1:5000** in your browser. The dashboard subscribes to the same MQTT topics as the spectator and shows all nodes (role, status, sector, battery) and whether the fleet is in E-Stop (frozen). Data refreshes every 2 seconds. Optional: `--port 5001` for a different HTTP port, `--broker` and `--mqtt-port` to match your broker.
 
 ### Trigger E-Stop
 
@@ -90,6 +102,9 @@ python node_drone.py --id drone-1 --broker 127.0.0.1 --port 1883
 
 # Spectator (read-only)
 python node_spectator.py --broker 127.0.0.1 --port 1883
+
+# Flask dashboard (visualization)
+python dashboard.py --broker 127.0.0.1 --mqtt-port 1883
 ```
 
 ### Tests
@@ -101,7 +116,7 @@ pip install -r requirements.txt
 python -m pytest tests/ -v
 ```
 
-Tests cover: state schema and E-Stop payload, config (topics, roles, timing), sentry/drone payload construction, chaos monkey PID discovery, run_swarm subprocess launch. An integration test that connects to a real broker is skipped unless an MQTT broker is running on `127.0.0.1:1883`.
+Tests cover: state schema and E-Stop payload, config (topics, roles, timing, dashboard port), sentry/drone payload construction, chaos monkey PID discovery, run_swarm subprocess launch, and the Flask dashboard API (`/`, `/api/state`). An integration test that connects to a real broker is skipped unless an MQTT broker is running on `127.0.0.1:1883`.
 
 ---
 
@@ -113,11 +128,12 @@ track1_serve_and_protect/
 ├── demo_script.md            # Step-by-step demo script
 ├── tests/                    # Unit and integration tests (pytest)
 ├── requirements.txt
-├── config.py                 # Broker, topics, timeouts, roles
+├── config.py                 # Broker, topics, timeouts, roles, dashboard port
 ├── state.py                  # Shared state schema, E-Stop payload
+├── dashboard.py              # Flask web dashboard (swarm + E-Stop visualization)
 ├── node_sentry.py            # Sentry: patrol sector, respond to intrusions, E-Stop
 ├── node_drone.py             # Drone: recon, handoff when battery low
-├── node_spectator.py         # Spectator: dashboard feed only
+├── node_spectator.py         # Spectator: console view of swarm state
 ├── run_swarm.py              # Launch N sentries + M drones + spectator
 ├── e_stop_trigger.py         # Send E-Stop message
 └── chaos_monkey.py           # Kill random nodes for resilience testing

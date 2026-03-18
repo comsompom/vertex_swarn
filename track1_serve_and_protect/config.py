@@ -34,3 +34,6 @@ STATUS_FROZEN = "frozen"  # E-Stop active
 # ---- Default swarm size (run_swarm.py) ----
 DEFAULT_SENTRIES = 2
 DEFAULT_DRONES = 2
+
+# ---- Flask dashboard ----
+DASHBOARD_PORT = int(os.environ.get("BASTION_DASHBOARD_PORT", "5000"))

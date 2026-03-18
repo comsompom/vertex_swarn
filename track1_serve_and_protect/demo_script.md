@@ -20,6 +20,8 @@ python run_swarm.py --sentries 2 --drones 2
 
 You should see: "Started sentry-1 ...", "Started drone-1 ...", "Started spectator ...". Spectator prints swarm state every few seconds.
 
+**Optional:** In another terminal run the Flask dashboard for a web view: `python dashboard.py`, then open http://127.0.0.1:5000.
+
 ---
 
 ## Step 2: Show coordination (30 s)
@@ -28,7 +30,7 @@ Point out:
 
 - **No central server** — only MQTT pub/sub (replace with Vertex for BUIDL).
 - **Heterogeneous roles** — sentries (sectors A1, A2) and drones (recon, battery drain).
-- **State sharing** — spectator shows all nodes' status, sector, battery.
+- **State sharing** — spectator (or the Flask dashboard) shows all nodes' status, sector, battery.
 
 ---
 
@@ -58,7 +60,7 @@ python e_stop_trigger.py
 
 **Narrative:** "One E-Stop message from any node or operator. Every node freezes in under 50 ms. No central controller — pure P2P safety."
 
-Check the first terminal (run_swarm): all nodes should log "E-STOP received — FROZEN" and spectator shows "FLEET FROZEN".
+Check the first terminal (run_swarm): all nodes should log "E-STOP received — FROZEN" and spectator shows "FLEET FROZEN". If the Flask dashboard is running, the page will show "FLEET FROZEN — E-Stop active".
 
 ---
 

@@ -46,6 +46,11 @@ class TestConfigTiming:
         assert config.DEFAULT_SENTRIES >= 1
         assert config.DEFAULT_DRONES >= 1
 
+    def test_dashboard_port(self):
+        assert hasattr(config, "DASHBOARD_PORT")
+        assert isinstance(config.DASHBOARD_PORT, int)
+        assert 1 <= config.DASHBOARD_PORT <= 65535
+
 
 class TestConfigBroker:
     def test_broker_default_or_env(self):
