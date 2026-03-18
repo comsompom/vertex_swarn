@@ -27,7 +27,8 @@ A peer-to-peer **military defence swarm**: perimeter sensors, sentry rovers, and
 ### Prerequisites
 
 - Python 3.10+
-- An MQTT broker for local runs (e.g. [Eclipse Mosquitto](https://mosquitto.org/) on port 1883). For the challenge submission, use Vertex 2.0 or FoxMQ.
+- **For hackathon submission (Vertex/FoxMQ):** Download the [FoxMQ](https://github.com/tashigg/foxmq/releases) binary and place it in `foxmq_broker/` (or set `--foxmq-dir`). See [scripts/README_FOXMQ.md](scripts/README_FOXMQ.md).
+- **For local demo only:** An MQTT broker (e.g. [Eclipse Mosquitto](https://mosquitto.org/) on port 1883) or use FoxMQ as above.
 
 ### Install
 
@@ -49,20 +50,26 @@ See `.env.example` for a template. Topics, heartbeat interval, and roles are def
 
 ### Run the swarm
 
-**Requirement:** An MQTT broker must be running on port 1883 (default). If you don't have one:
+**Requirement:** A broker must be listening on port 1883 (default). Options:
 
-- **With Docker:** start the broker and swarm in one go:
+- **FoxMQ (Vertex) — recommended for hackathon submission:**  
+  Download [FoxMQ](https://github.com/tashigg/foxmq/releases) and extract the binary into `foxmq_broker/`. Then:
+  ```bash
+  python run_swarm.py --sentries 2 --drones 2 --start-broker-foxmq
+  ```
+  This creates a single-node FoxMQ cluster (Vertex-backed MQTT) and starts the swarm. See [scripts/README_FOXMQ.md](scripts/README_FOXMQ.md) for details.
+
+- **Docker (Mosquitto):** start broker and swarm in one go:
   ```bash
   python run_swarm.py --sentries 2 --drones 2 --start-broker-docker
   ```
-  This starts `eclipse-mosquitto` in a container, then launches the swarm.
 
-- **Without Docker:** start a broker first in a separate terminal (e.g. `mosquitto -v`), then run:
+- **Manual broker:** start Mosquitto (or FoxMQ) in another terminal, then:
   ```bash
   python run_swarm.py --sentries 2 --drones 2
   ```
 
-If no broker is reachable, the script prints clear instructions and exits.
+If no broker is reachable, the script prints instructions and exits.
 
 This launches two sentry nodes (with sectors A1, A2), two drone nodes, and one spectator. The spectator prints the current swarm state every few seconds.
 

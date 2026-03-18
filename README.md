@@ -75,7 +75,7 @@ vertex_swarn/
 ### Track 1 (Serve and Protect Bastion)
 
 - **Goal:** Perimeter-defence swarm with no central server: sentries patrol sectors, drones do recon and hand off when battery is low; one E-Stop freezes the fleet; chaos monkey proves resilience.
-- **Transport:** MQTT (Mosquitto or FoxMQ) for local runs; replace with Vertex 2.0 for BUIDL submission.
+- **Transport:** FoxMQ (Vertex-backed MQTT) for hackathon submission (`--start-broker-foxmq` or run `scripts/start_foxmq.py`); or Mosquitto/Docker for local demo.
 - **Nodes:**
   - **Sentry** — Publishes state (role, status, sector_id, battery); subscribes to state + E-Stop; stops normal loop when E-Stop received.
   - **Drone** — Same pattern; simulates battery drain; status becomes `low_battery_handoff` when battery ≤ 15%.
@@ -145,7 +145,8 @@ mosquitto -v
 ```bash
 cd track1_serve_and_protect
 pip install -r requirements.txt
-# If you have Docker, this starts the MQTT broker and the swarm in one go:
+# If you have Docker, this starts the MQTT broker and the swarm in one go
+# (use default broker 127.0.0.1; if BASTION_BROKER is set, add --broker 127.0.0.1):
 python run_swarm.py --sentries 2 --drones 2 --start-broker-docker
 # Otherwise start a broker first (e.g. mosquitto -v) in another terminal, then:
 # python run_swarm.py --sentries 2 --drones 2

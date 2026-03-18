@@ -34,7 +34,36 @@ def _print_broker_help(broker: str, port: int) -> None:
     print("Start a broker first, for example:", file=sys.stderr)
     print("  mosquitto -v", file=sys.stderr)
     print("  or: docker run -p 1883:1883 eclipse-mosquitto", file=sys.stderr)
+    print("  or (Vertex/FoxMQ): python scripts/start_foxmq.py --background", file=sys.stderr)
     print("Then run this script again. Use --skip-broker-check to start nodes anyway.", file=sys.stderr)
+
+
+def start_broker_foxmq(port: int, foxmq_dir: str | None = None) -> bool:
+    """Start FoxMQ (Vertex-backed MQTT) via scripts/start_foxmq.py. Return True if broker becomes reachable."""
+    if foxmq_dir is None:
+        foxmq_dir = os.path.join(SCRIPT_DIR, "foxmq_broker")
+    start_script = os.path.join(SCRIPT_DIR, "scripts", "start_foxmq.py")
+    if not os.path.isfile(start_script):
+        return False
+
+    def wait_for_broker():
+        for _ in range(15):
+            time.sleep(1)
+            if broker_reachable("127.0.0.1", port, timeout=1.0):
+                return True
+        return False
+
+    try:
+        proc = subprocess.Popen(
+            [sys.executable, start_script, "--foxmq-dir", foxmq_dir, "--mqtt-port", str(port), "--background"],
+            cwd=SCRIPT_DIR,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        proc.wait(timeout=30)
+        return wait_for_broker()
+    except Exception:
+        return False
 
 
 def start_broker_docker(port: int) -> bool:
@@ -73,20 +102,28 @@ def main():
     parser.add_argument("--skip-broker-check", action="store_true", help="Do not check if MQTT broker is reachable before starting nodes")
     parser.add_argument("--start-broker-docker", action="store_true", dest="start_broker_docker",
                         help="If broker is not running, try to start it with Docker (eclipse-mosquitto)")
+    parser.add_argument("--start-broker-foxmq", action="store_true", dest="start_broker_foxmq",
+                        help="If broker is not running, try to start FoxMQ (Vertex-backed MQTT). Requires FoxMQ binary.")
+    parser.add_argument("--foxmq-dir", default=None, help="Directory for FoxMQ binary and foxmq.d/ (with --start-broker-foxmq)")
     args = parser.parse_args()
 
     if not args.skip_broker_check and not broker_reachable(args.broker, args.port):
-        if args.start_broker_docker and args.broker in ("127.0.0.1", "localhost") and args.port == 1883:
-            print("Broker not reachable. Trying to start MQTT broker with Docker...")
-            if start_broker_docker(args.port):
-                print("Broker started. Launching swarm...")
-            else:
-                _print_broker_help(args.broker, args.port)
-                sys.exit(1)
-        else:
+        started = False
+        if args.broker in ("127.0.0.1", "localhost") and args.port == 1883:
+            if args.start_broker_foxmq:
+                print("Broker not reachable. Trying to start FoxMQ (Vertex-backed MQTT)...")
+                started = start_broker_foxmq(args.port, args.foxmq_dir)
+                if started:
+                    print("FoxMQ started. Launching swarm...")
+            if not started and args.start_broker_docker:
+                print("Broker not reachable. Trying to start MQTT broker with Docker...")
+                started = start_broker_docker(args.port)
+                if started:
+                    print("Broker started. Launching swarm...")
+        if not started:
             _print_broker_help(args.broker, args.port)
-            if not args.start_broker_docker:
-                print("Tip: use --start-broker-docker to try starting the broker with Docker.", file=sys.stderr)
+            if not args.start_broker_foxmq and not args.start_broker_docker:
+                print("Tip: use --start-broker-foxmq for Vertex/FoxMQ or --start-broker-docker for Mosquitto.", file=sys.stderr)
             sys.exit(1)
 
     procs = []

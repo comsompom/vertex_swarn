@@ -5,8 +5,9 @@ Wire to Vertex 2.0 / FoxMQ for BUIDL; MQTT broker used here as transport stand-i
 
 import os
 
-# ---- Transport: FoxMQ (MQTT) or Vertex ----
-# For submission: use Vertex 2.0 SDK or FoxMQ (MQTT-compatible). For local demo: any MQTT broker.
+# ---- Transport: FoxMQ (Vertex) or MQTT ----
+# For hackathon submission use FoxMQ (Vertex-backed MQTT): run scripts/start_foxmq.py or run_swarm.py --start-broker-foxmq.
+# For local demo without FoxMQ: any MQTT broker (e.g. Mosquitto).
 MQTT_BROKER = os.environ.get("BASTION_BROKER", "127.0.0.1")
 MQTT_PORT = int(os.environ.get("BASTION_MQTT_PORT", "1883"))
 
