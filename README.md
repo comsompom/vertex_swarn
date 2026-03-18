@@ -90,7 +90,7 @@ vertex_swarn/
 
 - **Python 3.10+**
 - **Warm Up:** For standalone demo, nothing else. For MQTT: an MQTT broker. For AirSim path: [AirSim](https://github.com/Microsoft/AirSim), Unreal environment, and [tashi-vertex-rs](https://github.com/tashigit/tashi-vertex-rs) built.
-- **Track 1:** An MQTT broker (e.g. [Eclipse Mosquitto](https://mosquitto.org/)) on port 1883 for local runs.
+- **Track 1:** FoxMQ binary in `track1_serve_and_protect/foxmq_broker/` (Vertex-backed MQTT). Optional: [Mosquitto](https://mosquitto.org/) or Docker for a plain MQTT broker.
 
 ---
 
@@ -133,26 +133,17 @@ python stateful_handshake_mission.py
 
 ### 2. Track 1 (Serve and Protect Bastion)
 
-**Step 1 — Start a broker** (if not already running):
-
-- **FoxMQ (Vertex) — for hackathon:** Download [FoxMQ](https://github.com/tashigg/foxmq/releases), put the binary in `track1_serve_and_protect/foxmq_broker/`, then use `--start-broker-foxmq` below (see [track1_serve_and_protect/scripts/README_FOXMQ.md](track1_serve_and_protect/scripts/README_FOXMQ.md)).
-- **Mosquitto:** `mosquitto -v` or `docker run -p 1883:1883 eclipse-mosquitto`.
-
-**Step 2 — Install and run the swarm:**
+**FoxMQ (Vertex)** is set up: the binary lives in `track1_serve_and_protect/foxmq_broker/` and is used for coordination. To run the swarm:
 
 ```bash
 cd track1_serve_and_protect
 pip install -r requirements.txt
-# With FoxMQ (Vertex): start FoxMQ and swarm in one go (binary must be in foxmq_broker/):
-#   python run_swarm.py --sentries 2 --drones 2 --start-broker-foxmq
-# With Docker (Mosquitto): python run_swarm.py --sentries 2 --drones 2 --start-broker-docker
-# With broker already running:
-python run_swarm.py --sentries 2 --drones 2 --start-broker-docker
-# Otherwise start a broker first (e.g. mosquitto -v) in another terminal, then:
-# python run_swarm.py --sentries 2 --drones 2
+python run_swarm.py --sentries 2 --drones 2 --start-broker-foxmq
 ```
 
-This starts two sentries (sectors A1, A2), two drones, and one spectator. The spectator prints swarm state to the console.
+This starts the FoxMQ broker (Vertex-backed MQTT) and launches two sentries, two drones, and one spectator. The spectator prints swarm state to the console.
+
+**Alternatives:** Use `--start-broker-docker` for Mosquitto in Docker, or start a broker (e.g. `mosquitto -v`) in another terminal and run `python run_swarm.py --sentries 2 --drones 2` without `--start-broker-foxmq`.
 
 **Step 3 — (Optional) Start the Flask dashboard:**
 
