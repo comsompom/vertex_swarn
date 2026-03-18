@@ -65,3 +65,27 @@ class TestDashboardAPI:
         assert len(data["added"]) == 1
         assert data["added"][0]["role"] == "drone"
         assert "node_id" in data["added"][0]
+
+    def test_api_ai_control_list_strategies(self):
+        from web.dashboard import app
+        with app.test_client() as client:
+            r = client.get("/api/ai-control")
+        assert r.status_code == 200
+        data = r.get_json()
+        assert data.get("ok") is True
+        assert "strategies" in data
+        assert any(s["id"] == "handoff" for s in data["strategies"])
+
+    @patch("web.dashboard.mqtt")
+    def test_api_ai_control_run_handoff(self, mock_mqtt):
+        mock_mqtt.Client.return_value.connect = MagicMock()
+        mock_mqtt.Client.return_value.publish = MagicMock()
+        mock_mqtt.Client.return_value.disconnect = MagicMock()
+        from web.dashboard import app
+        with app.test_client() as client:
+            r = client.post("/api/ai-control", json={"strategy": "handoff"}, content_type="application/json")
+        assert r.status_code == 200
+        data = r.get_json()
+        assert data.get("ok") is True
+        assert "recommendation" in data
+        assert data.get("strategy") == "handoff"

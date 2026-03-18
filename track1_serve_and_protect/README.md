@@ -17,8 +17,9 @@ A peer-to-peer **military defence swarm**: perimeter sensors, sentry rovers, and
 - **P2P E-Stop:** A high-priority fault channel; one trigger freezes all nodes in under 50 ms (“hold fire”).
 - **Self-healing:** Heartbeats and stale-peer detection; when a node drops, sectors and tasks can be reallocated; relay chains can re-form when comms degrade.
 - **Chaos testing:** A chaos-monkey script kills random nodes so you can verify rebalance and E-Stop behavior under failure.
-- **Web dashboard:** A Flask app visualizes swarm state (nodes, roles, status, sector, battery), E-Stop status, and optional AI suggestions in real time.
-- **Optional AI agent:** A peer node (`node_ai_agent.py`) subscribes to swarm state and uses OpenAI to publish short tactical suggestions (e.g. handoff or threat assessment) to the mesh; the dashboard shows the latest suggestion. Set `OPENAI_API_KEY` in the environment to enable.
+- **Multi-drone swarm:** Default 3 sentries + 3 drones + 1 spectator; add more from the dashboard (Add nodes, 1–20) so they join via FoxMQ/MQTT.
+- **Web dashboard:** Flask app at http://127.0.0.1:5000: live swarm state, E-Stop banner, **Add nodes** (drone/sentry), **AI Control** (Low-battery handoff, Sector rebalance, Stale recovery, OpenAI tactical).
+- **Optional AI agent:** Peer node `node_ai_agent.py` publishes OpenAI tactical suggestions to the mesh; set `OPENAI_API_KEY` to enable.
 
 ---
 
@@ -48,12 +49,15 @@ Edit `config.py` or use environment variables:
 
 See `.env.example` for a template. Topics, heartbeat interval, and roles are defined in `config.py`.
 
-### Run the swarm
+### Run the swarm (multi-drone solution)
 
-**FoxMQ (Vertex) is set up** — the binary is in `foxmq_broker/`. To start the swarm with FoxMQ (Vertex-backed MQTT):
+**Quick start:** (1) Start swarm: `cd track1_serve_and_protect` then `python run_swarm.py --start-broker-foxmq`. (2) Start dashboard: in a second terminal, `python -m web.dashboard` from `track1_serve_and_protect`, then open **http://127.0.0.1:5000**.
+
+**Terminal 1 — swarm:**
 
 ```bash
 cd track1_serve_and_protect
+pip install -r requirements.txt   # first time only
 python run_swarm.py --start-broker-foxmq
 ```
 
@@ -66,20 +70,23 @@ This starts the FoxMQ broker (if not already running) and launches **3 sentries,
 
 If no broker is reachable, the script prints instructions and exits.
 
-This launches two sentry nodes (with sectors A1, A2), two drone nodes, and one spectator. The spectator prints the current swarm state every few seconds.
+The spectator prints the current swarm state to the console every few seconds.
 
 ### Web dashboard (Flask)
 
-To visualize the swarm in a browser, start the Flask dashboard (in a separate terminal). Run from the `track1_serve_and_protect` folder:
+**Quick start:** In a second terminal, run `python -m web.dashboard` from `track1_serve_and_protect`, then open **http://127.0.0.1:5000**.
 
 ```bash
+cd track1_serve_and_protect
 python -m web.dashboard
 ```
 
-Then open **http://127.0.0.1:5000** in your browser. The dashboard:
+Open **http://127.0.0.1:5000** in your browser. The dashboard:
 
 - Shows all nodes (role, status, sector, battery), E-Stop status, and the latest AI suggestion. Data refreshes every 2 seconds.
-- **Add nodes:** Use “Add drone” or “Add sentry” to start more nodes; choose a count (1–20) and they join the swarm via FoxMQ/MQTT. This helps demonstrate a larger heterogeneous swarm (e.g. 10+ agents) for the hackathon.
+- **Add nodes:** Use “Add drone” or “Add sentry” to start more nodes; choose a count (1–20) and they join the swarm via FoxMQ/MQTT.
+
+- **AI Control:** Run a strategy (Low-battery handoff, Sector rebalance, Stale node recovery, or OpenAI tactical); result is published to the mesh.
 
 The dashboard lives in the `web/` folder. Optional: `--port 5001`, `--broker`, `--mqtt-port` to match your broker.
 

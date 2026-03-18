@@ -11,17 +11,38 @@
   <p class="subtitle">Track 1 — Swarm coordination dashboard (live from MQTT)</p>
   <div id="e-stop" class="e-stop-banner">FLEET FROZEN — E-Stop active</div>
   <div id="ai-suggestion" class="ai-suggestion"></div>
-  <section class="controls" aria-label="Add nodes">
-    <h2 class="controls-title">Add nodes</h2>
-    <p class="controls-hint">Start more drones or sentries; they join the swarm via FoxMQ/MQTT.</p>
-    <div class="controls-row">
-      <label for="add-count">Count</label>
-      <input type="number" id="add-count" min="1" max="20" value="1" aria-label="Number of nodes to add">
-      <button type="button" id="btn-add-drone" class="btn btn-drone">Add drone</button>
-      <button type="button" id="btn-add-sentry" class="btn btn-sentry">Add sentry</button>
-    </div>
-    <div id="add-message" class="add-message" role="status" aria-live="polite"></div>
-  </section>
+  <div class="top-tabs">
+    <section class="controls tab-panel" aria-label="Add nodes">
+      <h2 class="controls-title">Add nodes</h2>
+      <p class="controls-hint">Start more drones or sentries; they join the swarm via FoxMQ/MQTT.</p>
+      <div class="controls-row">
+        <label for="add-count">Count</label>
+        <input type="number" id="add-count" min="1" max="20" value="1" aria-label="Number of nodes to add">
+        <button type="button" id="btn-add-drone" class="btn btn-drone">Add drone</button>
+        <button type="button" id="btn-add-sentry" class="btn btn-sentry">Add sentry</button>
+      </div>
+      <div id="add-message" class="add-message" role="status" aria-live="polite"></div>
+    </section>
+    <section class="controls ai-control tab-panel" aria-label="AI Control">
+      <h2 class="controls-title">AI Control</h2>
+      <p class="controls-hint">Run a coordination strategy on current swarm state (handoff, rebalance, stale recovery, or OpenAI tactical).</p>
+      <div class="controls-row">
+        <label for="ai-strategy">Strategy</label>
+        <select id="ai-strategy" aria-label="AI control strategy">
+          <option value="auto">Auto (pick best)</option>
+          <option value="handoff">Low-battery handoff</option>
+          <option value="rebalance">Sector rebalance</option>
+          <option value="stale">Stale node recovery</option>
+          <option value="openai">OpenAI tactical</option>
+        </select>
+        <button type="button" id="btn-ai-control" class="btn btn-ai">Run AI Control</button>
+      </div>
+      <div id="ai-control-result" class="ai-control-result" role="status" aria-live="polite"></div>
+    </section>
+  </div>
+  <div class="nodes-panel">
+    <h2 class="nodes-panel-title">Swarm nodes (drones &amp; sentries)</h2>
+    <div class="table-wrapper">
   <table>
     <thead>
       <tr>
@@ -35,6 +56,8 @@
     </thead>
     <tbody id="tbody"></tbody>
   </table>
+    </div>
+  </div>
   <footer>Data refreshes every 2s from MQTT. Broker: {{ broker }}:{{ port }}</footer>
   <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>

@@ -11,7 +11,7 @@ This repository is our challenge entry. It includes the **Warm Up** (Stateful Ha
 | Part | Description |
 |------|--------------|
 | **Warm Up** | Two agents discover each other, sync state (`peer_id`, `role`, `status`), send heartbeats, mirror roles, and recover from failure. Implemented in `warm_up/` (standalone demo, MQTT, or AirSim + Tashi Vertex). |
-| **Track 1 — Serve and Protect Bastion** | Heterogeneous swarm: sentries (sector patrol), drones (recon, handoff when battery low), spectator, optional **AI agent** (OpenAI suggestions), and a **Flask web dashboard**. All nodes use MQTT (or Vertex/FoxMQ) for pub/sub; one E-Stop message freezes the whole fleet in under 50 ms. A chaos-monkey script kills random nodes to demonstrate self-healing. Implemented in `track1_serve_and_protect/`. |
+| **Track 1 — Serve and Protect Bastion** | **Multi-drone solution:** FoxMQ (Vertex) broker; 3 sentries + 3 drones + 1 spectator by default; **Add nodes** from dashboard (1–20); **AI Control** (handoff, rebalance, stale recovery, OpenAI tactical); Flask dashboard at http://127.0.0.1:5000; E-Stop, chaos monkey, optional AI agent. Implemented in `track1_serve_and_protect/`. |
 | **Docs** | Challenge description, tracks, rules, execution plan, and pre-flight checklist in the repo root. |
 
 We follow the challenge pillars: **Coordinate** (discover, share state, cooperate), **Automate** (hand off, self-heal), **Secure** (P2P E-Stop, fault → fleet freeze).
@@ -45,9 +45,10 @@ vertex_swarn/
     ├── README.md
     ├── demo_script.md        # Step-by-step demo for pitch/video
     ├── web/                  # Flask web dashboard (templates + static)
-    │   ├── dashboard.py      # App and MQTT (run: python -m web.dashboard)
-    │   ├── templates/dashboard.html
-    │   └── static/css/dashboard.css, static/js/dashboard.js
+│   ├── dashboard.py      # App and MQTT (run: python -m web.dashboard)
+│   ├── strategies.py    # AI Control strategies (handoff, rebalance, stale, OpenAI)
+│   ├── templates/dashboard.html
+│   └── static/css/dashboard.css, static/js/dashboard.js
     ├── run_swarm.py          # Launch sentries + drones + spectator
     ├── node_sentry.py        # Sentry node (sector patrol)
     ├── node_drone.py         # Drone node (recon, battery, handoff)
@@ -131,9 +132,9 @@ python stateful_handshake_mission.py
 
 ---
 
-### 2. Track 1 (Serve and Protect Bastion)
+### 2. Track 1 (Serve and Protect Bastion) — Multi-drone solution
 
-**FoxMQ (Vertex)** is set up: the binary lives in `track1_serve_and_protect/foxmq_broker/` and is used for coordination. To run the swarm:
+**Quick start:** (1) Start swarm: `cd track1_serve_and_protect` then `python run_swarm.py --start-broker-foxmq`. (2) Start dashboard: in a second terminal, `python -m web.dashboard` from `track1_serve_and_protect`, then open **http://127.0.0.1:5000**.
 
 ```bash
 cd track1_serve_and_protect
@@ -141,13 +142,11 @@ pip install -r requirements.txt
 python run_swarm.py --start-broker-foxmq
 ```
 
-This starts the FoxMQ broker (Vertex-backed MQTT) and launches **three sentries, three drones, and one spectator** by default (7 agents). Use `--sentries N --drones M` to override. You can also add more drones or sentries from the **Flask dashboard** (“Add nodes” controls). The spectator prints swarm state to the console.
+This starts the FoxMQ broker (Vertex-backed MQTT) and launches **three sentries, three drones, and one spectator** by default (7 agents). Use `--sentries N --drones M` to override. You can also add more drones or sentries from the **Flask dashboard** (“Add nodes” controls). From the dashboard: Add nodes (more drones/sentries), AI Control (strategies). See track1_serve_and_protect/README.md.
 
 **Alternatives:** Use `--start-broker-docker` for Mosquitto in Docker, or start a broker (e.g. `mosquitto -v`) in another terminal and run `python run_swarm.py` without `--start-broker-foxmq`.
 
-**Step 3 — (Optional) Start the Flask dashboard:**
-
-In another terminal (from `track1_serve_and_protect`):
+**Start the dashboard** (second terminal):
 
 ```bash
 cd track1_serve_and_protect

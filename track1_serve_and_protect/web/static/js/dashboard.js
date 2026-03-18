@@ -98,11 +98,85 @@
       });
   }
 
+  function formatActionsForUser(actions) {
+    if (!actions || !actions.length) return '';
+    var lines = [];
+    actions.forEach(function (a) {
+      if (a.type === 'handoff' && a.from && a.to) {
+        lines.push('• Hand off ' + a.from + ' to ' + a.to + (a.sector ? ' (sector ' + a.sector + ')' : ''));
+      } else if (a.type === 'rebalance' && a.sectors && a.sectors.length) {
+        lines.push('• Rebalance sectors: ' + a.sectors.join(', ') + ' — consider moving one sentry to another sector.');
+      } else if (a.type === 'add_sentry' && a.sectors && a.sectors.length) {
+        lines.push('• Add or assign a sentry to cover: ' + a.sectors.join(', '));
+      } else if (a.type === 'check_node' && a.node_id) {
+        lines.push('• Check or restart node: ' + a.node_id + ' (no recent heartbeat).');
+      } else {
+        lines.push('• ' + (a.type || 'Action') + (a.sectors ? ': ' + a.sectors.join(', ') : ''));
+      }
+    });
+    return lines.join('\n');
+  }
+
+  function strategyLabel(name) {
+    var labels = { auto: 'Auto', handoff: 'Low-battery handoff', rebalance: 'Sector rebalance', stale: 'Stale node recovery', openai: 'OpenAI tactical' };
+    return labels[name] || name;
+  }
+
+  function runAiControl() {
+    var strategyEl = document.getElementById('ai-strategy');
+    var resultEl = document.getElementById('ai-control-result');
+    var btn = document.getElementById('btn-ai-control');
+    if (!resultEl || !btn) return;
+    var strategy = strategyEl && strategyEl.value ? strategyEl.value : 'auto';
+    resultEl.innerHTML = '<span class="result-label">Running…</span>';
+    resultEl.className = 'ai-control-result loading';
+    resultEl.style.display = 'block';
+    btn.disabled = true;
+    fetch('/api/ai-control', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ strategy: strategy })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.ok && data.recommendation != null) {
+          var strategyUsed = data.strategy_used || data.strategy || '';
+          var parts = [];
+          parts.push('<span class="result-label">Strategy used</span> ' + strategyLabel(strategyUsed));
+          parts.push('<span class="result-label">What it means</span> ' + escapeHtml(data.recommendation));
+          var actionsText = formatActionsForUser(data.actions);
+          if (actionsText) {
+            parts.push('<span class="result-label">Suggested actions</span>\n' + escapeHtml(actionsText));
+          }
+          resultEl.innerHTML = parts.join('\n');
+          resultEl.className = 'ai-control-result';
+        } else {
+          resultEl.textContent = data.error || 'Failed to run strategy';
+          resultEl.className = 'ai-control-result error';
+        }
+      })
+      .catch(function () {
+        resultEl.textContent = 'Request failed';
+        resultEl.className = 'ai-control-result error';
+      })
+      .finally(function () {
+        btn.disabled = false;
+      });
+  }
+
+  function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
   (function bindControls() {
     var btnDrone = document.getElementById('btn-add-drone');
     var btnSentry = document.getElementById('btn-add-sentry');
     if (btnDrone) btnDrone.addEventListener('click', function () { addNodes('drone'); });
     if (btnSentry) btnSentry.addEventListener('click', function () { addNodes('sentry'); });
+    var btnAi = document.getElementById('btn-ai-control');
+    if (btnAi) btnAi.addEventListener('click', runAiControl);
   })();
 
   fetchState();

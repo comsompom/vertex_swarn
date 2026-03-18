@@ -26,6 +26,7 @@ except ImportError:
 from flask import Flask, jsonify, render_template, request
 
 import config
+from web.strategies import run_strategy, STRATEGIES
 
 # Sectors for sentries (cycle when adding from UI)
 SECTORS = ["A1", "A2", "A3", "B1", "B2"]
@@ -162,6 +163,51 @@ def api_nodes_add():
             return jsonify({"ok": False, "error": f"Failed to spawn {node_id}", "added": added}), 500
         added.append({"node_id": node_id, "role": role, "pid": proc.pid})
     return jsonify({"ok": True, "added": added})
+
+
+@app.route("/api/ai-control", methods=["GET", "POST"])
+def api_ai_control():
+    """
+    AI Control: run a drone/sentry control strategy on current swarm state.
+    GET: list available strategies.
+    POST: body { "strategy": "handoff"|"rebalance"|"stale"|"openai"|"auto" }; run and return recommendation.
+    Optionally publishes result to AI_SUGGESTIONS_TOPIC so the mesh sees it.
+    """
+    if request.method == "GET":
+        return jsonify({
+            "ok": True,
+            "strategies": [
+                {"id": k, "label": v[0]} for k, v in STRATEGIES.items()
+            ],
+        })
+
+    try:
+        data = request.get_json(force=True, silent=True) or {}
+        strategy_name = (data.get("strategy") or "auto").strip().lower()
+    except Exception:
+        strategy_name = "auto"
+
+    result = run_strategy(strategy_name, nodes)
+    if not result.get("ok"):
+        return jsonify(result), 400
+
+    # Publish to mesh so other nodes (and dashboard) can see this recommendation
+    try:
+        client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="bastion-dashboard-ai-control")
+        client.connect(config.MQTT_BROKER, config.MQTT_PORT, 60)
+        payload = {
+            "node_id": "dashboard-ai-control",
+            "ts_ms": int(time.time() * 1000),
+            "suggestion": result.get("recommendation", ""),
+            "strategy": strategy_name,
+            "actions": result.get("actions", []),
+        }
+        client.publish(config.AI_SUGGESTIONS_TOPIC, json.dumps(payload), qos=1)
+        client.disconnect()
+    except Exception:
+        pass  # don't fail the API if publish fails
+
+    return jsonify(result)
 
 
 def main():
