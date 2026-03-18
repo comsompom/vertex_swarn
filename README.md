@@ -44,9 +44,10 @@ vertex_swarn/
 └── track1_serve_and_protect/ # Track 1: Serve and Protect Bastion
     ├── README.md
     ├── demo_script.md        # Step-by-step demo for pitch/video
-    ├── web/                  # Flask web dashboard
-    │   ├── __init__.py
-    │   └── dashboard.py      # Swarm + E-Stop UI (run: python -m web.dashboard)
+    ├── web/                  # Flask web dashboard (templates + static)
+    │   ├── dashboard.py      # App and MQTT (run: python -m web.dashboard)
+    │   ├── templates/dashboard.html
+    │   └── static/css/dashboard.css, static/js/dashboard.js
     ├── run_swarm.py          # Launch sentries + drones + spectator
     ├── node_sentry.py        # Sentry node (sector patrol)
     ├── node_drone.py         # Drone node (recon, battery, handoff)
@@ -144,7 +145,10 @@ mosquitto -v
 ```bash
 cd track1_serve_and_protect
 pip install -r requirements.txt
-python run_swarm.py --sentries 2 --drones 2
+# If you have Docker, this starts the MQTT broker and the swarm in one go:
+python run_swarm.py --sentries 2 --drones 2 --start-broker-docker
+# Otherwise start a broker first (e.g. mosquitto -v) in another terminal, then:
+# python run_swarm.py --sentries 2 --drones 2
 ```
 
 This starts two sentries (sectors A1, A2), two drones, and one spectator. The spectator prints swarm state to the console.

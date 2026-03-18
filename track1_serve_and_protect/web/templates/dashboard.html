@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Serve and Protect Bastion — Swarm Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+  <h1>Serve and Protect Bastion</h1>
+  <p class="subtitle">Track 1 — Swarm coordination dashboard (live from MQTT)</p>
+  <div id="e-stop" class="e-stop-banner">FLEET FROZEN — E-Stop active</div>
+  <div id="ai-suggestion" class="ai-suggestion"></div>
+  <table>
+    <thead>
+      <tr>
+        <th>Node</th>
+        <th>Role</th>
+        <th>Status</th>
+        <th>Sector</th>
+        <th>Battery</th>
+        <th>Last seen</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <footer>Data refreshes every 2s from MQTT. Broker: {{ broker }}:{{ port }}</footer>
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>

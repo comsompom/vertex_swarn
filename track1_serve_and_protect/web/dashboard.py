@@ -10,7 +10,8 @@ import threading
 import time
 
 # Ensure parent (track1_serve_and_protect) is on path for config
-_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_web_dir = os.path.dirname(os.path.abspath(__file__))
+_root = os.path.dirname(_web_dir)
 if _root not in sys.path:
     sys.path.insert(0, _root)
 
@@ -19,115 +20,22 @@ try:
 except ImportError:
     raise SystemExit("Install paho-mqtt: pip install paho-mqtt")
 
-from flask import Flask, jsonify, render_template_string
+from flask import Flask, jsonify, render_template
 
 import config
 
-app = Flask(__name__)
+# Flask app: templates and static live under web/ for a clean separation
+app = Flask(
+    __name__,
+    template_folder=os.path.join(_web_dir, "templates"),
+    static_folder=os.path.join(_web_dir, "static"),
+)
 
 # Shared state (updated by MQTT callback)
 nodes = {}
 e_stop_at = [None]  # timestamp or None
 e_stop_source = [None]
 last_ai_suggestion = [None]  # { "node_id", "ts_ms", "suggestion" } or None
-
-HTML_TEMPLATE = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Serve and Protect Bastion — Swarm Dashboard</title>
-  <style>
-    * { box-sizing: border-box; }
-    body { font-family: system-ui, sans-serif; margin: 0; padding: 1rem; background: #0f1419; color: #e6edf3; }
-    h1 { margin: 0 0 0.5rem; font-size: 1.5rem; }
-    .subtitle { color: #8b949e; font-size: 0.9rem; margin-bottom: 1rem; }
-    .e-stop-banner {
-      display: none;
-      background: #da3636; color: #fff; padding: 0.75rem 1rem; border-radius: 6px;
-      font-weight: 600; margin-bottom: 1rem; text-align: center;
-    }
-    .e-stop-banner.active { display: block; }
-    table { width: 100%; border-collapse: collapse; background: #161b22; border-radius: 8px; overflow: hidden; }
-    th, td { padding: 0.6rem 1rem; text-align: left; border-bottom: 1px solid #21262d; }
-    th { background: #21262d; color: #8b949e; font-weight: 600; font-size: 0.85rem; }
-    tr:last-child td { border-bottom: none; }
-    .role-sentry { color: #7ee787; }
-    .role-drone { color: #79c0ff; }
-    .status-stale { color: #f85149; }
-    .battery-low { color: #f85149; }
-    .battery-mid { color: #d29922; }
-    .battery-ok { color: #7ee787; }
-    .age { font-size: 0.85rem; color: #8b949e; }
-    .ai-suggestion { font-size: 0.9rem; color: #c9d1d9; }
-    footer { margin-top: 1.5rem; font-size: 0.8rem; color: #8b949e; }
-  </style>
-</head>
-<body>
-  <h1>Serve and Protect Bastion</h1>
-  <p class="subtitle">Track 1 — Swarm coordination dashboard (live from MQTT)</p>
-  <div id="e-stop" class="e-stop-banner">FLEET FROZEN — E-Stop active</div>
-  <div id="ai-suggestion" class="ai-suggestion" style="display:none; background:#21262d; padding:0.75rem 1rem; border-radius:6px; margin-bottom:1rem; border-left:4px solid #79c0ff;"></div>
-  <table>
-    <thead>
-      <tr>
-        <th>Node</th>
-        <th>Role</th>
-        <th>Status</th>
-        <th>Sector</th>
-        <th>Battery</th>
-        <th>Last seen</th>
-      </tr>
-    </thead>
-    <tbody id="tbody"></tbody>
-  </table>
-  <footer>Data refreshes every 2s from MQTT. Broker: {{ broker }}:{{ port }}</footer>
-  <script>
-    const POLL_MS = 2000;
-    const STALE_SEC = 10;
-    function render(data) {
-      const tbody = document.getElementById('tbody');
-      const eStopEl = document.getElementById('e-stop');
-      const aiEl = document.getElementById('ai-suggestion');
-      if (data.e_stop_active) eStopEl.classList.add('active'); else eStopEl.classList.remove('active');
-      if (data.last_ai_suggestion && data.last_ai_suggestion.suggestion) {
-        aiEl.style.display = 'block';
-        aiEl.textContent = 'AI suggestion: ' + data.last_ai_suggestion.suggestion;
-      } else {
-        aiEl.style.display = 'none';
-      }
-      const nodes = data.nodes || [];
-      if (nodes.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6">No nodes yet — start the swarm.</td></tr>';
-        return;
-      }
-      const now = Date.now() / 1000;
-      tbody.innerHTML = nodes.map(n => {
-        const age = now - (n.last_seen || 0);
-        const stale = age > STALE_SEC;
-        const bat = n.battery != null ? n.battery : 100;
-        const batClass = bat <= 15 ? 'battery-low' : bat <= 40 ? 'battery-mid' : 'battery-ok';
-        const roleClass = n.role === 'sentry' ? 'role-sentry' : n.role === 'drone' ? 'role-drone' : '';
-        return '<tr>' +
-          '<td>' + (n.node_id || '?') + '</td>' +
-          '<td class="' + roleClass + '">' + (n.role || '—') + '</td>' +
-          '<td class="' + (stale ? 'status-stale' : '') + '">' + (n.status || '—') + '</td>' +
-          '<td>' + (n.sector_id != null ? n.sector_id : '—') + '</td>' +
-          '<td class="' + batClass + '">' + (n.battery != null ? n.battery + '%' : '—') + '</td>' +
-          '<td class="age">' + (stale ? 'stale ' : '') + age.toFixed(1) + 's ago</td>' +
-          '</tr>';
-      }).join('');
-    }
-    function fetchState() {
-      fetch('/api/state').then(r => r.json()).then(render).catch(() => {});
-    }
-    fetchState();
-    setInterval(fetchState, POLL_MS);
-  </script>
-</body>
-</html>
-"""
 
 
 def run_mqtt(broker: str, port: int):
@@ -168,8 +76,8 @@ def run_mqtt(broker: str, port: int):
 
 @app.route("/")
 def index():
-    return render_template_string(
-        HTML_TEMPLATE,
+    return render_template(
+        "dashboard.html",
         broker=config.MQTT_BROKER,
         port=config.MQTT_PORT,
     )

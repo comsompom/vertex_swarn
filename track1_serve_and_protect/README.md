@@ -49,11 +49,20 @@ See `.env.example` for a template. Topics, heartbeat interval, and roles are def
 
 ### Run the swarm
 
-Start a mix of sentries and drones plus the spectator:
+**Requirement:** An MQTT broker must be running on port 1883 (default). If you don't have one:
 
-```bash
-python run_swarm.py --sentries 2 --drones 2
-```
+- **With Docker:** start the broker and swarm in one go:
+  ```bash
+  python run_swarm.py --sentries 2 --drones 2 --start-broker-docker
+  ```
+  This starts `eclipse-mosquitto` in a container, then launches the swarm.
+
+- **Without Docker:** start a broker first in a separate terminal (e.g. `mosquitto -v`), then run:
+  ```bash
+  python run_swarm.py --sentries 2 --drones 2
+  ```
+
+If no broker is reachable, the script prints clear instructions and exits.
 
 This launches two sentry nodes (with sectors A1, A2), two drone nodes, and one spectator. The spectator prints the current swarm state every few seconds.
 
@@ -147,9 +156,14 @@ Tests cover: state schema and E-Stop payload, config (topics, roles, timing, das
 track1_serve_and_protect/
 ├── README.md                 # This file — project description and usage
 ├── demo_script.md            # Step-by-step demo script
-├── web/                      # Flask web dashboard
+├── web/                      # Flask web dashboard (HTML/CSS/JS separated)
 │   ├── __init__.py
-│   └── dashboard.py          # Swarm + E-Stop visualization (run: python -m web.dashboard)
+│   ├── dashboard.py          # App and MQTT logic (run: python -m web.dashboard)
+│   ├── templates/
+│   │   └── dashboard.html    # Main page structure
+│   └── static/
+│       ├── css/dashboard.css # Styles
+│       └── js/dashboard.js   # Polling and table render
 ├── tests/                    # Unit and integration tests (pytest)
 ├── requirements.txt
 ├── config.py                 # Broker, topics, timeouts, roles, dashboard port

@@ -4,6 +4,7 @@ For BUIDL submission, wire to Vertex 2.0; here we use MQTT (FoxMQ-compatible) fo
 """
 
 import argparse
+import socket
 import subprocess
 import sys
 import time
@@ -16,13 +17,77 @@ os.chdir(SCRIPT_DIR)
 import config
 
 
+def broker_reachable(host: str, port: int, timeout: float = 2.0) -> bool:
+    """Return True if a TCP connection to host:port succeeds (e.g. MQTT broker)."""
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except (socket.error, OSError):
+        return False
+
+
+BROKER_CONTAINER_NAME = "bastion-mqtt"
+
+
+def _print_broker_help(broker: str, port: int) -> None:
+    print("Error: MQTT broker is not reachable at {}:{}.".format(broker, port), file=sys.stderr)
+    print("Start a broker first, for example:", file=sys.stderr)
+    print("  mosquitto -v", file=sys.stderr)
+    print("  or: docker run -p 1883:1883 eclipse-mosquitto", file=sys.stderr)
+    print("Then run this script again. Use --skip-broker-check to start nodes anyway.", file=sys.stderr)
+
+
+def start_broker_docker(port: int) -> bool:
+    """Try to start eclipse-mosquitto in Docker. Return True if broker becomes reachable."""
+    def wait_for_broker():
+        for _ in range(10):
+            time.sleep(1)
+            if broker_reachable("127.0.0.1", port, timeout=1.0):
+                return True
+        return False
+    try:
+        r = subprocess.run(
+            [
+                "docker", "run", "-d",
+                "-p", "{}:1883".format(port),
+                "--name", BROKER_CONTAINER_NAME,
+                "eclipse-mosquitto",
+            ],
+            capture_output=True,
+            timeout=30,
+            check=False,
+        )
+        if r.returncode != 0 and b"already in use" in (r.stderr or b""):
+            subprocess.run(["docker", "start", BROKER_CONTAINER_NAME], capture_output=True, timeout=10, check=False)
+        return wait_for_broker()
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return False
+
+
 def main():
     parser = argparse.ArgumentParser(description="Run Bastion swarm")
     parser.add_argument("--sentries", type=int, default=config.DEFAULT_SENTRIES)
     parser.add_argument("--drones", type=int, default=config.DEFAULT_DRONES)
     parser.add_argument("--broker", default=config.MQTT_BROKER)
     parser.add_argument("--port", type=int, default=config.MQTT_PORT)
+    parser.add_argument("--skip-broker-check", action="store_true", help="Do not check if MQTT broker is reachable before starting nodes")
+    parser.add_argument("--start-broker-docker", action="store_true", dest="start_broker_docker",
+                        help="If broker is not running, try to start it with Docker (eclipse-mosquitto)")
     args = parser.parse_args()
+
+    if not args.skip_broker_check and not broker_reachable(args.broker, args.port):
+        if args.start_broker_docker and args.broker in ("127.0.0.1", "localhost") and args.port == 1883:
+            print("Broker not reachable. Trying to start MQTT broker with Docker...")
+            if start_broker_docker(args.port):
+                print("Broker started. Launching swarm...")
+            else:
+                _print_broker_help(args.broker, args.port)
+                sys.exit(1)
+        else:
+            _print_broker_help(args.broker, args.port)
+            if not args.start_broker_docker:
+                print("Tip: use --start-broker-docker to try starting the broker with Docker.", file=sys.stderr)
+            sys.exit(1)
 
     procs = []
     sectors = ["A1", "A2", "A3", "B1", "B2"]
