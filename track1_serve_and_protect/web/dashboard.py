@@ -1,10 +1,13 @@
 """
 Flask dashboard for Serve and Protect Bastion — visualizes swarm state and E-Stop.
 Subscribes to MQTT state and E-Stop topics; serves a web UI that polls /api/state.
+Supports adding drones and sentries from the UI (POST /api/nodes/add).
 """
 
 import json
 import os
+import re
+import subprocess
 import sys
 import threading
 import time
@@ -20,9 +23,14 @@ try:
 except ImportError:
     raise SystemExit("Install paho-mqtt: pip install paho-mqtt")
 
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 
 import config
+
+# Sectors for sentries (cycle when adding from UI)
+SECTORS = ["A1", "A2", "A3", "B1", "B2"]
+# Spawned PIDs (for reference; optional future "stop" feature)
+_spawned_pids = []
 
 # Flask app: templates and static live under web/ for a clean separation
 app = Flask(
@@ -83,6 +91,40 @@ def index():
     )
 
 
+def _next_node_ids(role: str, count: int) -> list[tuple[str, str]]:
+    """Compute next `count` node_ids (and sector for sentry). Returns [(node_id, sector), ...]."""
+    prefix = "sentry" if role == "sentry" else "drone"
+    indices = []
+    for nid in nodes:
+        m = re.match(rf"^{prefix}-(\d+)$", nid)
+        if m:
+            indices.append(int(m.group(1)))
+    start = max(indices, default=0) + 1
+    out = []
+    for i in range(count):
+        idx = start + i
+        node_id = f"{prefix}-{idx}"
+        sector = SECTORS[(idx - 1) % len(SECTORS)] if role == "sentry" else ""
+        out.append((node_id, sector))
+    return out
+
+
+def _spawn_node(role: str, node_id: str, sector: str) -> subprocess.Popen | None:
+    """Spawn node_drone.py or node_sentry.py as subprocess. Returns Popen or None on failure."""
+    broker = config.MQTT_BROKER
+    port = config.MQTT_PORT
+    if role == "drone":
+        cmd = [sys.executable, os.path.join(_root, "node_drone.py"), "--id", node_id, "--broker", broker, "--port", str(port)]
+    else:
+        cmd = [sys.executable, os.path.join(_root, "node_sentry.py"), "--id", node_id, "--sector", sector, "--broker", broker, "--port", str(port)]
+    try:
+        proc = subprocess.Popen(cmd, cwd=_root, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        _spawned_pids.append(proc.pid)
+        return proc
+    except Exception:
+        return None
+
+
 @app.route("/api/state")
 def api_state():
     now = time.time()
@@ -96,6 +138,30 @@ def api_state():
         "e_stop_source": e_stop_source[0],
         "last_ai_suggestion": last_ai_suggestion[0],
     })
+
+
+@app.route("/api/nodes/add", methods=["POST"])
+def api_nodes_add():
+    """Add one or more drone/sentry nodes. Body: { "role": "drone"|"sentry", "count": 1 }."""
+    if request.method != "POST":
+        return jsonify({"ok": False, "error": "Method not allowed"}), 405
+    try:
+        data = request.get_json(force=True, silent=True) or {}
+        role = (data.get("role") or "").strip().lower()
+        if role not in ("drone", "sentry"):
+            return jsonify({"ok": False, "error": "role must be 'drone' or 'sentry'"}), 400
+        count = max(1, min(int(data.get("count", 1)), 20))
+    except (ValueError, TypeError):
+        return jsonify({"ok": False, "error": "count must be an integer 1–20"}), 400
+
+    ids_and_sectors = _next_node_ids(role, count)
+    added = []
+    for node_id, sector in ids_and_sectors:
+        proc = _spawn_node(role, node_id, sector)
+        if proc is None:
+            return jsonify({"ok": False, "error": f"Failed to spawn {node_id}", "added": added}), 500
+        added.append({"node_id": node_id, "role": role, "pid": proc.pid})
+    return jsonify({"ok": True, "added": added})
 
 
 def main():

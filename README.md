@@ -138,12 +138,12 @@ python stateful_handshake_mission.py
 ```bash
 cd track1_serve_and_protect
 pip install -r requirements.txt
-python run_swarm.py --sentries 2 --drones 2 --start-broker-foxmq
+python run_swarm.py --start-broker-foxmq
 ```
 
-This starts the FoxMQ broker (Vertex-backed MQTT) and launches two sentries, two drones, and one spectator. The spectator prints swarm state to the console.
+This starts the FoxMQ broker (Vertex-backed MQTT) and launches **three sentries, three drones, and one spectator** by default (7 agents). Use `--sentries N --drones M` to override. You can also add more drones or sentries from the **Flask dashboard** (“Add nodes” controls). The spectator prints swarm state to the console.
 
-**Alternatives:** Use `--start-broker-docker` for Mosquitto in Docker, or start a broker (e.g. `mosquitto -v`) in another terminal and run `python run_swarm.py --sentries 2 --drones 2` without `--start-broker-foxmq`.
+**Alternatives:** Use `--start-broker-docker` for Mosquitto in Docker, or start a broker (e.g. `mosquitto -v`) in another terminal and run `python run_swarm.py` without `--start-broker-foxmq`.
 
 **Step 3 — (Optional) Start the Flask dashboard:**
 

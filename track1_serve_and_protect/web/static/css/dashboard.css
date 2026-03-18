@@ -51,6 +51,91 @@ h1 {
   display: block;
 }
 
+.controls {
+  background: #161b22;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #30363d;
+}
+
+.controls-title {
+  font-size: 1rem;
+  margin: 0 0 0.5rem;
+  color: #e6edf3;
+}
+
+.controls-hint {
+  color: #8b949e;
+  font-size: 0.85rem;
+  margin: 0 0 0.75rem;
+}
+
+.controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+
+.controls-row label {
+  color: #8b949e;
+  font-size: 0.9rem;
+}
+
+.controls-row input[type="number"] {
+  width: 4rem;
+  padding: 0.35rem 0.5rem;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  color: #e6edf3;
+  font-size: 0.9rem;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-drone {
+  background: #238636;
+  color: #fff;
+}
+
+.btn-drone:hover:not(:disabled) {
+  background: #2ea043;
+}
+
+.btn-sentry {
+  background: #1f6feb;
+  color: #fff;
+}
+
+.btn-sentry:hover:not(:disabled) {
+  background: #388bfd;
+}
+
+.add-message {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: #7ee787;
+  min-height: 1.25rem;
+}
+
+.add-message.error {
+  color: #f85149;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;

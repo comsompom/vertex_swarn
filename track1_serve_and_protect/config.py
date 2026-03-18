@@ -33,9 +33,9 @@ STATUS_RESPONDING = "responding"
 STATUS_IDLE = "idle"
 STATUS_FROZEN = "frozen"  # E-Stop active
 
-# ---- Default swarm size (run_swarm.py) ----
-DEFAULT_SENTRIES = 2
-DEFAULT_DRONES = 2
+# ---- Default swarm size (run_swarm.py) — hackathon: more heterogeneous agents ----
+DEFAULT_SENTRIES = 3
+DEFAULT_DRONES = 3
 
 # ---- Flask dashboard ----
 DASHBOARD_PORT = int(os.environ.get("BASTION_DASHBOARD_PORT", "5000"))

@@ -56,6 +56,55 @@
       .catch(function () {});
   }
 
+  function showAddMessage(text, isError) {
+    var el = document.getElementById('add-message');
+    if (!el) return;
+    el.textContent = text;
+    el.classList.toggle('error', !!isError);
+    if (text) {
+      setTimeout(function () { el.textContent = ''; }, 5000);
+    }
+  }
+
+  function addNodes(role) {
+    var countEl = document.getElementById('add-count');
+    var count = 1;
+    if (countEl) {
+      var n = parseInt(countEl.value, 10);
+      if (!isNaN(n) && n >= 1 && n <= 20) count = n;
+    }
+    var btn = role === 'drone' ? document.getElementById('btn-add-drone') : document.getElementById('btn-add-sentry');
+    if (btn) btn.disabled = true;
+    fetch('/api/nodes/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: role, count: count })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.ok && data.added && data.added.length) {
+          var names = data.added.map(function (a) { return a.node_id; }).join(', ');
+          showAddMessage('Added: ' + names, false);
+          fetchState();
+        } else {
+          showAddMessage(data.error || 'Failed to add node', true);
+        }
+      })
+      .catch(function () {
+        showAddMessage('Request failed', true);
+      })
+      .finally(function () {
+        if (btn) btn.disabled = false;
+      });
+  }
+
+  (function bindControls() {
+    var btnDrone = document.getElementById('btn-add-drone');
+    var btnSentry = document.getElementById('btn-add-sentry');
+    if (btnDrone) btnDrone.addEventListener('click', function () { addNodes('drone'); });
+    if (btnSentry) btnSentry.addEventListener('click', function () { addNodes('sentry'); });
+  })();
+
   fetchState();
   setInterval(fetchState, POLL_MS);
 })();

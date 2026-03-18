@@ -1,6 +1,7 @@
 """Tests for Flask dashboard (API shape, no broker required)."""
 import sys
 import os
+from unittest.mock import patch, MagicMock
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -35,3 +36,32 @@ class TestDashboardAPI:
         assert "text/html" in r.content_type
         assert b"Serve and Protect Bastion" in r.data
         assert b"Swarm" in r.data or b"dashboard" in r.data.lower()
+
+    def test_api_nodes_add_requires_post(self):
+        from web.dashboard import app
+        with app.test_client() as client:
+            r = client.get("/api/nodes/add")
+        assert r.status_code == 405
+
+    def test_api_nodes_add_rejects_invalid_role(self):
+        from web.dashboard import app
+        with app.test_client() as client:
+            r = client.post("/api/nodes/add", json={"role": "invalid"}, content_type="application/json")
+        assert r.status_code == 400
+        data = r.get_json()
+        assert data.get("ok") is False
+        assert "error" in data
+
+    @patch("web.dashboard._spawn_node")
+    def test_api_nodes_add_spawns_drone(self, mock_spawn):
+        mock_spawn.return_value = MagicMock(pid=99999)
+        from web.dashboard import app
+        with app.test_client() as client:
+            r = client.post("/api/nodes/add", json={"role": "drone", "count": 1}, content_type="application/json")
+        assert r.status_code == 200
+        data = r.get_json()
+        assert data.get("ok") is True
+        assert "added" in data
+        assert len(data["added"]) == 1
+        assert data["added"][0]["role"] == "drone"
+        assert "node_id" in data["added"][0]

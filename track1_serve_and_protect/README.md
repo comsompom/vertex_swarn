@@ -54,15 +54,15 @@ See `.env.example` for a template. Topics, heartbeat interval, and roles are def
 
 ```bash
 cd track1_serve_and_protect
-python run_swarm.py --sentries 2 --drones 2 --start-broker-foxmq
+python run_swarm.py --start-broker-foxmq
 ```
 
-This starts the FoxMQ broker (if not already running) and launches two sentries, two drones, and one spectator. The first run creates `foxmq_broker/foxmq.d/` (address-book and keys) automatically.
+This starts the FoxMQ broker (if not already running) and launches **3 sentries, 3 drones, and 1 spectator** by default (7 agents; use `--sentries N --drones M` to override). The first run creates `foxmq_broker/foxmq.d/` (address-book and keys) automatically. You can add more drones or sentries from the **Flask dashboard** (“Add nodes” section).
 
 **Other options:**
 
-- **Docker (Mosquitto):** `python run_swarm.py --sentries 2 --drones 2 --start-broker-docker`
-- **Broker already running:** `python run_swarm.py --sentries 2 --drones 2`
+- **Docker (Mosquitto):** `python run_swarm.py --start-broker-docker`
+- **Broker already running:** `python run_swarm.py`
 
 If no broker is reachable, the script prints instructions and exits.
 
@@ -76,7 +76,12 @@ To visualize the swarm in a browser, start the Flask dashboard (in a separate te
 python -m web.dashboard
 ```
 
-Then open **http://127.0.0.1:5000** in your browser. The dashboard lives in the `web/` folder and subscribes to the same MQTT topics as the spectator; it shows all nodes (role, status, sector, battery), whether the fleet is in E-Stop (frozen), and the latest AI suggestion (if the AI agent is running). Data refreshes every 2 seconds. Optional: `--port 5001` for a different HTTP port, `--broker` and `--mqtt-port` to match your broker.
+Then open **http://127.0.0.1:5000** in your browser. The dashboard:
+
+- Shows all nodes (role, status, sector, battery), E-Stop status, and the latest AI suggestion. Data refreshes every 2 seconds.
+- **Add nodes:** Use “Add drone” or “Add sentry” to start more nodes; choose a count (1–20) and they join the swarm via FoxMQ/MQTT. This helps demonstrate a larger heterogeneous swarm (e.g. 10+ agents) for the hackathon.
+
+The dashboard lives in the `web/` folder. Optional: `--port 5001`, `--broker`, `--mqtt-port` to match your broker.
 
 ### Optional: AI agent (OpenAI)
 
