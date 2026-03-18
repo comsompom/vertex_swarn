@@ -11,12 +11,12 @@ class TestDashboardAPI:
     """Test dashboard app and /api/state response shape."""
 
     def test_app_exists(self):
-        import dashboard
-        assert dashboard.app is not None
+        from web.dashboard import app
+        assert app is not None
 
     def test_api_state_returns_json(self):
-        import dashboard
-        with dashboard.app.test_client() as client:
+        from web.dashboard import app
+        with app.test_client() as client:
             r = client.get("/api/state")
         assert r.status_code == 200
         assert r.content_type == "application/json"
@@ -27,8 +27,8 @@ class TestDashboardAPI:
         assert isinstance(data["e_stop_active"], bool)
 
     def test_index_returns_html(self):
-        import dashboard
-        with dashboard.app.test_client() as client:
+        from web.dashboard import app
+        with app.test_client() as client:
             r = client.get("/")
         assert r.status_code == 200
         assert "text/html" in r.content_type

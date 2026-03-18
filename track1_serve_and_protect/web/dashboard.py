@@ -4,8 +4,15 @@ Subscribes to MQTT state and E-Stop topics; serves a web UI that polls /api/stat
 """
 
 import json
+import os
+import sys
 import threading
 import time
+
+# Ensure parent (track1_serve_and_protect) is on path for config
+_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _root not in sys.path:
+    sys.path.insert(0, _root)
 
 try:
     import paho.mqtt.client as mqtt

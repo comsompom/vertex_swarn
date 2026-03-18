@@ -20,7 +20,7 @@ python run_swarm.py --sentries 2 --drones 2
 
 You should see: "Started sentry-1 ...", "Started drone-1 ...", "Started spectator ...". Spectator prints swarm state every few seconds.
 
-**Optional:** In another terminal run the Flask dashboard for a web view: `python dashboard.py`, then open http://127.0.0.1:5000.
+**Optional:** In another terminal run the Flask dashboard for a web view: `python -m web.dashboard` (from `track1_serve_and_protect`), then open http://127.0.0.1:5000.
 
 ---
 

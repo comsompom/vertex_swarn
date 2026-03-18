@@ -57,13 +57,13 @@ This launches two sentry nodes (with sectors A1, A2), two drone nodes, and one s
 
 ### Web dashboard (Flask)
 
-To visualize the swarm in a browser, start the Flask dashboard (in a separate terminal):
+To visualize the swarm in a browser, start the Flask dashboard (in a separate terminal). Run from the `track1_serve_and_protect` folder:
 
 ```bash
-python dashboard.py
+python -m web.dashboard
 ```
 
-Then open **http://127.0.0.1:5000** in your browser. The dashboard subscribes to the same MQTT topics as the spectator and shows all nodes (role, status, sector, battery) and whether the fleet is in E-Stop (frozen). Data refreshes every 2 seconds. Optional: `--port 5001` for a different HTTP port, `--broker` and `--mqtt-port` to match your broker.
+Then open **http://127.0.0.1:5000** in your browser. The dashboard lives in the `web/` folder and subscribes to the same MQTT topics as the spectator; it shows all nodes (role, status, sector, battery) and whether the fleet is in E-Stop (frozen). Data refreshes every 2 seconds. Optional: `--port 5001` for a different HTTP port, `--broker` and `--mqtt-port` to match your broker.
 
 ### Trigger E-Stop
 
@@ -104,7 +104,7 @@ python node_drone.py --id drone-1 --broker 127.0.0.1 --port 1883
 python node_spectator.py --broker 127.0.0.1 --port 1883
 
 # Flask dashboard (visualization)
-python dashboard.py --broker 127.0.0.1 --mqtt-port 1883
+python -m web.dashboard --broker 127.0.0.1 --mqtt-port 1883
 ```
 
 ### Tests
@@ -126,11 +126,13 @@ Tests cover: state schema and E-Stop payload, config (topics, roles, timing, das
 track1_serve_and_protect/
 ├── README.md                 # This file — project description and usage
 ├── demo_script.md            # Step-by-step demo script
+├── web/                      # Flask web dashboard
+│   ├── __init__.py
+│   └── dashboard.py          # Swarm + E-Stop visualization (run: python -m web.dashboard)
 ├── tests/                    # Unit and integration tests (pytest)
 ├── requirements.txt
 ├── config.py                 # Broker, topics, timeouts, roles, dashboard port
 ├── state.py                  # Shared state schema, E-Stop payload
-├── dashboard.py              # Flask web dashboard (swarm + E-Stop visualization)
 ├── node_sentry.py            # Sentry: patrol sector, respond to intrusions, E-Stop
 ├── node_drone.py             # Drone: recon, handoff when battery low
 ├── node_spectator.py         # Spectator: console view of swarm state
