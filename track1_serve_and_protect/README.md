@@ -92,6 +92,17 @@ python node_drone.py --id drone-1 --broker 127.0.0.1 --port 1883
 python node_spectator.py --broker 127.0.0.1 --port 1883
 ```
 
+### Tests
+
+All logic is covered by unit and integration tests. Run from the track folder:
+
+```bash
+pip install -r requirements.txt
+python -m pytest tests/ -v
+```
+
+Tests cover: state schema and E-Stop payload, config (topics, roles, timing), sentry/drone payload construction, chaos monkey PID discovery, run_swarm subprocess launch. An integration test that connects to a real broker is skipped unless an MQTT broker is running on `127.0.0.1:1883`.
+
 ---
 
 ## Repo layout
@@ -100,6 +111,7 @@ python node_spectator.py --broker 127.0.0.1 --port 1883
 track1_serve_and_protect/
 ├── README.md                 # This file — project description and usage
 ├── demo_script.md            # Step-by-step demo script
+├── tests/                    # Unit and integration tests (pytest)
 ├── requirements.txt
 ├── config.py                 # Broker, topics, timeouts, roles
 ├── state.py                  # Shared state schema, E-Stop payload

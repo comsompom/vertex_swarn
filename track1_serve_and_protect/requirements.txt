@@ -4,3 +4,6 @@ paho-mqtt>=2.1.0
 
 # Optional: for chaos_monkey auto-discovery of PIDs (otherwise use --pids)
 # psutil>=5.9.0
+
+# Tests
+pytest>=7.0.0

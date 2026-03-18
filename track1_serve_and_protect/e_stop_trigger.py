@@ -1,6 +1,6 @@
 """
 Trigger P2P E-Stop for demo: one message freezes the entire fleet.
-Run while swarm is running to show judges &lt; 50 ms freeze.
+Run while swarm is running to demonstrate fleet freeze in under 50 ms.
 """
 
 import argparse
