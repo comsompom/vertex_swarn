@@ -21,6 +21,10 @@ class TestConfigTopics:
     def test_threat_map_topic(self):
         assert "threat_map" in config.THREAT_MAP_TOPIC
 
+    def test_ai_suggestions_topic(self):
+        assert hasattr(config, "AI_SUGGESTIONS_TOPIC")
+        assert "ai_suggestions" in config.AI_SUGGESTIONS_TOPIC
+
 
 class TestConfigRoles:
     def test_roles_defined(self):

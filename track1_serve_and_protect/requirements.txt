@@ -2,6 +2,7 @@
 # For BUIDL: add Vertex 2.0 SDK or use FoxMQ (MQTT). This allows local demo with any MQTT broker.
 paho-mqtt>=2.1.0
 flask>=3.0.0
+openai>=1.0.0
 
 # Optional: for chaos_monkey auto-discovery of PIDs (otherwise use --pids)
 # psutil>=5.9.0

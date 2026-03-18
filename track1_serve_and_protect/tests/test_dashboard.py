@@ -23,6 +23,7 @@ class TestDashboardAPI:
         data = r.get_json()
         assert "nodes" in data
         assert "e_stop_active" in data
+        assert "last_ai_suggestion" in data
         assert isinstance(data["nodes"], list)
         assert isinstance(data["e_stop_active"], bool)
 

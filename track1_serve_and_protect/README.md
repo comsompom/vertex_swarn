@@ -17,7 +17,8 @@ A peer-to-peer **military defence swarm**: perimeter sensors, sentry rovers, and
 - **P2P E-Stop:** A high-priority fault channel; one trigger freezes all nodes in under 50 ms (“hold fire”).
 - **Self-healing:** Heartbeats and stale-peer detection; when a node drops, sectors and tasks can be reallocated; relay chains can re-form when comms degrade.
 - **Chaos testing:** A chaos-monkey script kills random nodes so you can verify rebalance and E-Stop behavior under failure.
-- **Web dashboard:** A Flask app visualizes swarm state (nodes, roles, status, sector, battery) and E-Stop status in real time.
+- **Web dashboard:** A Flask app visualizes swarm state (nodes, roles, status, sector, battery), E-Stop status, and optional AI suggestions in real time.
+- **Optional AI agent:** A peer node (`node_ai_agent.py`) subscribes to swarm state and uses OpenAI to publish short tactical suggestions (e.g. handoff or threat assessment) to the mesh; the dashboard shows the latest suggestion. Set `OPENAI_API_KEY` in the environment to enable.
 
 ---
 
@@ -42,8 +43,9 @@ Edit `config.py` or use environment variables:
 - `BASTION_BROKER` — broker host (default `127.0.0.1`)
 - `BASTION_MQTT_PORT` — broker port (default `1883`)
 - `BASTION_DASHBOARD_PORT` — Flask dashboard HTTP port (default `5000`)
+- `OPENAI_API_KEY` — Optional; enables the AI agent node for LLM-powered suggestions (see below). Never commit this key; use `.env` or environment.
 
-Topics, heartbeat interval, and roles are defined in `config.py`.
+See `.env.example` for a template. Topics, heartbeat interval, and roles are defined in `config.py`.
 
 ### Run the swarm
 
@@ -63,7 +65,23 @@ To visualize the swarm in a browser, start the Flask dashboard (in a separate te
 python -m web.dashboard
 ```
 
-Then open **http://127.0.0.1:5000** in your browser. The dashboard lives in the `web/` folder and subscribes to the same MQTT topics as the spectator; it shows all nodes (role, status, sector, battery) and whether the fleet is in E-Stop (frozen). Data refreshes every 2 seconds. Optional: `--port 5001` for a different HTTP port, `--broker` and `--mqtt-port` to match your broker.
+Then open **http://127.0.0.1:5000** in your browser. The dashboard lives in the `web/` folder and subscribes to the same MQTT topics as the spectator; it shows all nodes (role, status, sector, battery), whether the fleet is in E-Stop (frozen), and the latest AI suggestion (if the AI agent is running). Data refreshes every 2 seconds. Optional: `--port 5001` for a different HTTP port, `--broker` and `--mqtt-port` to match your broker.
+
+### Optional: AI agent (OpenAI)
+
+To add an AI peer that publishes tactical suggestions (e.g. handoff or threat assessment) based on swarm state:
+
+1. Set your OpenAI API key in the environment (never commit it):
+   ```bash
+   set OPENAI_API_KEY=sk-...   # Windows
+   export OPENAI_API_KEY=sk-... # Linux/macOS
+   ```
+2. Install dependencies: `pip install -r requirements.txt` (includes `openai`).
+3. In a separate terminal, run the AI agent (from `track1_serve_and_protect`):
+   ```bash
+   python node_ai_agent.py
+   ```
+   It subscribes to swarm state and every 30 seconds sends a summary to OpenAI and publishes the suggestion to the mesh. The dashboard shows the latest suggestion. If `OPENAI_API_KEY` is not set, the agent still runs and publishes a placeholder message.
 
 ### Trigger E-Stop
 
@@ -105,6 +123,9 @@ python node_spectator.py --broker 127.0.0.1 --port 1883
 
 # Flask dashboard (visualization)
 python -m web.dashboard --broker 127.0.0.1 --mqtt-port 1883
+
+# Optional: AI agent (set OPENAI_API_KEY first)
+python node_ai_agent.py --broker 127.0.0.1 --port 1883
 ```
 
 ### Tests
@@ -136,6 +157,7 @@ track1_serve_and_protect/
 ├── node_sentry.py            # Sentry: patrol sector, respond to intrusions, E-Stop
 ├── node_drone.py             # Drone: recon, handoff when battery low
 ├── node_spectator.py         # Spectator: console view of swarm state
+├── node_ai_agent.py          # Optional: OpenAI-powered suggestion peer (env: OPENAI_API_KEY)
 ├── run_swarm.py              # Launch N sentries + M drones + spectator
 ├── e_stop_trigger.py         # Send E-Stop message
 └── chaos_monkey.py           # Kill random nodes for resilience testing

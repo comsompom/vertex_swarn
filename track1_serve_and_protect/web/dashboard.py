@@ -29,6 +29,7 @@ app = Flask(__name__)
 nodes = {}
 e_stop_at = [None]  # timestamp or None
 e_stop_source = [None]
+last_ai_suggestion = [None]  # { "node_id", "ts_ms", "suggestion" } or None
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
@@ -59,6 +60,7 @@ HTML_TEMPLATE = """
     .battery-mid { color: #d29922; }
     .battery-ok { color: #7ee787; }
     .age { font-size: 0.85rem; color: #8b949e; }
+    .ai-suggestion { font-size: 0.9rem; color: #c9d1d9; }
     footer { margin-top: 1.5rem; font-size: 0.8rem; color: #8b949e; }
   </style>
 </head>
@@ -66,6 +68,7 @@ HTML_TEMPLATE = """
   <h1>Serve and Protect Bastion</h1>
   <p class="subtitle">Track 1 — Swarm coordination dashboard (live from MQTT)</p>
   <div id="e-stop" class="e-stop-banner">FLEET FROZEN — E-Stop active</div>
+  <div id="ai-suggestion" class="ai-suggestion" style="display:none; background:#21262d; padding:0.75rem 1rem; border-radius:6px; margin-bottom:1rem; border-left:4px solid #79c0ff;"></div>
   <table>
     <thead>
       <tr>
@@ -86,7 +89,14 @@ HTML_TEMPLATE = """
     function render(data) {
       const tbody = document.getElementById('tbody');
       const eStopEl = document.getElementById('e-stop');
+      const aiEl = document.getElementById('ai-suggestion');
       if (data.e_stop_active) eStopEl.classList.add('active'); else eStopEl.classList.remove('active');
+      if (data.last_ai_suggestion && data.last_ai_suggestion.suggestion) {
+        aiEl.style.display = 'block';
+        aiEl.textContent = 'AI suggestion: ' + data.last_ai_suggestion.suggestion;
+      } else {
+        aiEl.style.display = 'none';
+      }
       const nodes = data.nodes || [];
       if (nodes.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6">No nodes yet — start the swarm.</td></tr>';
@@ -122,10 +132,12 @@ HTML_TEMPLATE = """
 
 def run_mqtt(broker: str, port: int):
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="bastion-dashboard")
-    client.on_connect = lambda c, u, flags, rc, props: (
-        c.subscribe(config.STATE_TOPIC_SUBSCRIBE),
-        c.subscribe(config.E_STOP_TOPIC),
-    ) if rc == 0 else None
+    def on_connect(c, u, flags, rc, props=None):
+        if rc == 0:
+            c.subscribe(config.STATE_TOPIC_SUBSCRIBE)
+            c.subscribe(config.E_STOP_TOPIC)
+            c.subscribe(config.AI_SUGGESTIONS_TOPIC)
+    client.on_connect = on_connect
 
     def on_message(client, userdata, msg):
         if msg.topic == config.E_STOP_TOPIC:
@@ -134,6 +146,12 @@ def run_mqtt(broker: str, port: int):
                 e_stop_source[0] = json.loads(msg.payload.decode()).get("source", "?")
             except Exception:
                 e_stop_source[0] = "?"
+            return
+        if msg.topic == config.AI_SUGGESTIONS_TOPIC:
+            try:
+                last_ai_suggestion[0] = json.loads(msg.payload.decode())
+            except Exception:
+                pass
             return
         if msg.topic.startswith(f"{config.TOPIC_PREFIX}/state/"):
             try:
@@ -168,6 +186,7 @@ def api_state():
         "nodes": node_list,
         "e_stop_active": e_stop_at[0] is not None,
         "e_stop_source": e_stop_source[0],
+        "last_ai_suggestion": last_ai_suggestion[0],
     })
 
 

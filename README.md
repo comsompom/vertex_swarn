@@ -11,7 +11,7 @@ This repository is our challenge entry. It includes the **Warm Up** (Stateful Ha
 | Part | Description |
 |------|--------------|
 | **Warm Up** | Two agents discover each other, sync state (`peer_id`, `role`, `status`), send heartbeats, mirror roles, and recover from failure. Implemented in `warm_up/` (standalone demo, MQTT, or AirSim + Tashi Vertex). |
-| **Track 1 — Serve and Protect Bastion** | Heterogeneous swarm: sentries (sector patrol), drones (recon, handoff when battery low), spectator, and a **Flask web dashboard**. All nodes use MQTT (or Vertex/FoxMQ) for pub/sub; one E-Stop message freezes the whole fleet in under 50 ms. A chaos-monkey script kills random nodes to demonstrate self-healing. Implemented in `track1_serve_and_protect/`. |
+| **Track 1 — Serve and Protect Bastion** | Heterogeneous swarm: sentries (sector patrol), drones (recon, handoff when battery low), spectator, optional **AI agent** (OpenAI suggestions), and a **Flask web dashboard**. All nodes use MQTT (or Vertex/FoxMQ) for pub/sub; one E-Stop message freezes the whole fleet in under 50 ms. A chaos-monkey script kills random nodes to demonstrate self-healing. Implemented in `track1_serve_and_protect/`. |
 | **Docs** | Challenge description, tracks, rules, execution plan, and pre-flight checklist in the repo root. |
 
 We follow the challenge pillars: **Coordinate** (discover, share state, cooperate), **Automate** (hand off, self-heal), **Secure** (P2P E-Stop, fault → fleet freeze).
@@ -28,6 +28,7 @@ vertex_swarn/
 ├── track.md                  # Warm Up + Track 1–3 specs and judging
 ├── rules.md                  # Submission rules (one Warm-Up, one main track)
 ├── HACKATHON_PREFLIGHT.md    # Pre-flight checklist (Discord, handshake, bounty)
+├── VIDEO_RECORDING_GUIDE.md  # How to record the presentation video
 ├── pre_flight.md             # Pre-flight email content
 ├── warm_up.md                # Warm-up letter / goals
 ├── suggeestion.md            # Strategy and project ideas
@@ -214,6 +215,9 @@ Environment variables (or edit `track1_serve_and_protect/config.py`):
 | Document | Description |
 |----------|-------------|
 | [PLAN.md](PLAN.md) | Full execution plan, track choice, phases, checklist. |
+| [HACKATHON_COMPLIANCE.md](HACKATHON_COMPLIANCE.md) | Checklist vs Warm Up, Track 1, and rules. |
+| [IMPROVEMENTS.md](IMPROVEMENTS.md) | Suggestions to make the project more professional. |
+| [VIDEO_RECORDING_GUIDE.md](VIDEO_RECORDING_GUIDE.md) | How to record the presentation video (tools, steps, tips, submission). |
 | [description.md](description.md) | Official challenge: pillars, tracks, prizes. |
 | [track.md](track.md) | Warm Up + Track 1–3 specs and judging. |
 | [rules.md](rules.md) | Submission rules (one Warm-Up, one main track; team ≤5). |
