@@ -113,6 +113,7 @@ From another terminal (or use the **Fleet control** tab in the dashboard):
 
 **E-Stop (freeze fleet):**
 ```bash
+cd track1_serve_and_protect
 python e_stop_trigger.py
 ```
 

@@ -23,16 +23,6 @@
       </div>
       <div id="add-message" class="add-message" role="status" aria-live="polite"></div>
     </section>
-    <section class="controls fleet-control tab-panel" aria-label="Fleet control">
-      <h2 class="controls-title">Fleet control</h2>
-      <p class="controls-hint">E-Stop freezes all nodes; Unstop resumes them. Chaos monkey kills 2 random nodes (resilience demo).</p>
-      <div class="controls-row">
-        <button type="button" id="btn-e-stop" class="btn btn-e-stop">E-Stop</button>
-        <button type="button" id="btn-unstop" class="btn btn-unstop">Unstop</button>
-        <button type="button" id="btn-chaos" class="btn btn-chaos">Chaos monkey (kill 2)</button>
-      </div>
-      <div id="fleet-message" class="fleet-message" role="status" aria-live="polite"></div>
-    </section>
     <section class="controls ai-control tab-panel" aria-label="AI Control">
       <h2 class="controls-title">AI Control</h2>
       <p class="controls-hint">Run a coordination strategy on current swarm state (handoff, rebalance, stale recovery, or OpenAI tactical).</p>
