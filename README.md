@@ -11,7 +11,7 @@ This repository is our challenge entry. It includes the **Warm Up** (Stateful Ha
 | Part | Description |
 |------|--------------|
 | **Warm Up** | Two agents discover each other, sync state (`peer_id`, `role`, `status`), send heartbeats, mirror roles, and recover from failure. Implemented in `warm_up/` (standalone demo, MQTT, or AirSim + Tashi Vertex). |
-| **Track 1 — Serve and Protect Bastion** | **Multi-drone solution:** FoxMQ (Vertex) broker; 3 sentries + 3 drones + 1 spectator by default; **Add nodes** from dashboard (1–20); **Fleet control** (E-Stop, Unstop, Chaos monkey) and **AI Control** (handoff, rebalance, stale recovery, OpenAI tactical); Flask dashboard at http://127.0.0.1:5000; optional AI agent. Implemented in `track1_serve_and_protect/`. |
+| **Track 1 — Serve and Protect Bastion** | **Multi-drone solution:** FoxMQ (Vertex) broker; 3 sentries + 3 drones + 1 spectator by default; **Add nodes** (1–20) and **AI Control** (handoff, rebalance, stale recovery, OpenAI tactical); Flask dashboard at http://127.0.0.1:5000 with mission logo, **Logs** (operation log), E-Stop **modal** (red, centered when fleet frozen); E-Stop/Unstop/chaos from CLI. Implemented in `track1_serve_and_protect/`. |
 | **Docs** | Challenge description, tracks, rules, execution plan, and pre-flight checklist in the repo root. |
 
 We follow the challenge pillars: **Coordinate** (discover, share state, cooperate), **Automate** (hand off, self-heal), **Secure** (P2P E-Stop, fault → fleet freeze).
@@ -80,7 +80,7 @@ vertex_swarn/
   - **Sentry** — Publishes state (role, status, sector_id, battery); subscribes to state, E-Stop, and Unstop; freezes on E-Stop, resumes on Unstop.
   - **Drone** — Same pattern; simulates battery drain; status becomes `low_battery_handoff` when battery ≤ 15%.
   - **Spectator** — Subscribes only; prints swarm state and E-Stop/Unstop status to console.
-  - **Dashboard** — Flask app: live swarm table, E-Stop banner, **Fleet control** (E-Stop, Unstop, Chaos monkey), **Add nodes**, **AI Control**; `/api/state` and `/api/fleet/*`; front end polls every 2 s.
+  - **Dashboard** — Flask app: live swarm table, mission logo, **Logs** button (operation log), **Add nodes**, **AI Control**; E-Stop shown as centered red modal when fleet frozen; `/api/state`, `/api/logs`, `/api/nodes/add`, `/api/ai-control`; front end polls every 2 s.
 - **Topics:** `bastion/serve_and_protect/state/<node_id>`, `.../state/+`, `.../e_stop`, `.../unstop`.
 - **State schema:** `node_id`, `last_seen_ms`, `role`, `status`, `sector_id`, `battery`, `last_threat` (see `track1_serve_and_protect/state.py`).
 
@@ -152,7 +152,7 @@ cd track1_serve_and_protect
 python -m web.dashboard
 ```
 
-Open **http://127.0.0.1:5000** in your browser. The dashboard shows all nodes (role, status, sector, battery) and a “FLEET FROZEN” banner when E-Stop is active. Data refreshes every 2 seconds.
+Open **http://127.0.0.1:5000** in your browser. The dashboard shows all nodes (role, status, sector, battery) and a “FLEET FROZEN” centered red modal when E-Stop is active; mission logo and Logs button. Data refreshes every 2 seconds.
 
 **Step 4 — Trigger E-Stop (optional):**
 
@@ -163,7 +163,7 @@ cd track1_serve_and_protect
 python e_stop_trigger.py
 ```
 
-All nodes log “FROZEN”; the dashboard shows the E-Stop banner.
+All nodes log “FROZEN”; the dashboard shows the E-Stop modal and records the event in Logs.
 
 **Step 5 — Chaos monkey (optional):**
 

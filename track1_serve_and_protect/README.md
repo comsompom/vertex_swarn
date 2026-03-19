@@ -18,7 +18,7 @@ A peer-to-peer **military defence swarm**: perimeter sensors, sentry rovers, and
 - **Self-healing:** Heartbeats and stale-peer detection; when a node drops, sectors and tasks can be reallocated; relay chains can re-form when comms degrade.
 - **Chaos testing:** A chaos-monkey script kills random nodes so you can verify rebalance and E-Stop behavior under failure.
 - **Multi-drone swarm:** Default 3 sentries + 3 drones + 1 spectator; add more from the dashboard (Add nodes, 1–20) so they join via FoxMQ/MQTT.
-- **Web dashboard:** Flask app at http://127.0.0.1:5000: live swarm state, E-Stop banner, **Add nodes** (drone/sentry), **Fleet control** (E-Stop, Unstop, Chaos monkey), **AI Control** (Low-battery handoff, Sector rebalance, Stale recovery, OpenAI tactical).
+- **Web dashboard:** Flask app at http://127.0.0.1:5000: live swarm state, mission logo, **Logs** button (operation log for add node, AI control, E-Stop/Unstop), **Add nodes** (drone/sentry), **AI Control** (Low-battery handoff, Sector rebalance, Stale recovery, OpenAI tactical). When the fleet is frozen (E-Stop), a **centered modal** with red border and red text appears; E-Stop and Unstop are triggered from the CLI (`e_stop_trigger.py`, `unstop_trigger.py`).
 - **Optional AI agent:** Peer node `node_ai_agent.py` publishes OpenAI tactical suggestions to the mesh; set `OPENAI_API_KEY` to enable.
 
 ---
@@ -83,8 +83,9 @@ python -m web.dashboard
 
 Open **http://127.0.0.1:5000** in your browser. The dashboard:
 
-- **Fleet control** tab: **E-Stop** (freeze all nodes), **Unstop** (resume all nodes), **Chaos monkey (kill 2)** — same as running `python chaos_monkey.py --kill 2`.
-- Shows all nodes (role, status, sector, battery), E-Stop status, and the latest AI suggestion. Data refreshes every 2 seconds.
+- **Header:** Mission logo (top right) and **Logs** button — click to open the operation log (add node, AI control, E-Stop/Unstop; last 200 entries).
+- **E-Stop display:** When the fleet is frozen, a centered modal with red border and red text appears; it clears when Unstop is received. E-Stop/Unstop are triggered from the terminal.
+- **Swarm table:** All nodes (role, status, sector, battery), E-Stop status, latest AI suggestion; refreshes every 2 seconds.
 - **Add nodes:** Use “Add drone” or “Add sentry” to start more nodes; choose a count (1–20) and they join the swarm via FoxMQ/MQTT.
 
 - **AI Control:** Run a strategy (Low-battery handoff, Sector rebalance, Stale node recovery, or OpenAI tactical); result is published to the mesh.
@@ -109,7 +110,7 @@ To add an AI peer that publishes tactical suggestions (e.g. handoff or threat as
 
 ### Trigger E-Stop and Unstop
 
-From another terminal (or use the **Fleet control** tab in the dashboard):
+From another terminal:
 
 **E-Stop (freeze fleet):**
 ```bash
@@ -122,7 +123,7 @@ python e_stop_trigger.py
 python unstop_trigger.py
 ```
 
-Nodes freeze on E-Stop and resume on Unstop (stop normal operation and log “FROZEN”). The **Fleet control** tab in the dashboard also provides E-Stop, Unstop, and Chaos monkey (kill 2) buttons.
+Nodes freeze on E-Stop and resume on Unstop (stop normal operation and log “FROZEN”). The dashboard shows a centered red modal when frozen and records E-Stop/Unstop in the Logs panel. Chaos monkey is run from the terminal (see below).
 
 ### Run the chaos monkey
 
@@ -168,7 +169,7 @@ pip install -r requirements.txt
 python -m pytest tests/ -v
 ```
 
-Tests cover: state schema and E-Stop payload, config (topics, roles, timing, dashboard port), sentry/drone payload construction, chaos monkey PID discovery, run_swarm subprocess launch, and the Flask dashboard API (`/`, `/api/state`). An integration test that connects to a real broker is skipped unless an MQTT broker is running on `127.0.0.1:1883`.
+Tests cover: state schema and E-Stop payload, config (topics, roles, timing, dashboard port), sentry/drone payload construction, chaos monkey PID discovery, run_swarm subprocess launch, and the Flask dashboard API (`/`, `/api/state`, `/api/logs`, `/api/nodes/add`, `/api/ai-control`). An integration test that connects to a real broker is skipped unless an MQTT broker is running on `127.0.0.1:1883`.
 
 ---
 
@@ -185,7 +186,8 @@ track1_serve_and_protect/
 │   │   └── dashboard.html    # Main page structure
 │   └── static/
 │       ├── css/dashboard.css # Styles
-│       └── js/dashboard.js   # Polling and table render
+│       ├── js/dashboard.js   # Polling, table, modals, logs
+│       └── mission_logo.jpg  # Header logo (optional; copy from repo root)
 ├── tests/                    # Unit and integration tests (pytest)
 ├── requirements.txt
 ├── config.py                 # Broker, topics, timeouts, roles, dashboard port
