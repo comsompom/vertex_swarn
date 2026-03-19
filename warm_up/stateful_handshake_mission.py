@@ -3,7 +3,7 @@
 Stateful Handshake — Serve and Protect Bastion (Python + Drones).
 AirSim + Tashi Vertex: two drones discover each other, sync state (peer_id, last_seen_ms, role, status),
 send heartbeats, toggle role (Drone1 -> scout, Drone2 mirrors in <1s), and recover from peer loss.
-Meets Warm Up acceptance criteria from track.md.
+Meets Warm Up acceptance criteria (Vertex Swarm Challenge).
 
 Optional: requires 'airsim' and a running Unreal/AirSim env. For warm-up without AirSim, use handshake_demo.py.
 """

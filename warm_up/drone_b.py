@@ -49,7 +49,7 @@ def on_message(client, userdata, msg):
     if peer_stale_logged:
         print(f"[{PEER_ID}] Peer {OTHER_ID} reconnected. Connection and state automatically resuming.")
         peer_stale_logged = False
-    # Mirror Agent A's role (track.md: "Agent B must acknowledge and mirror this state change in <1 second")
+    # Mirror Agent A's role (Warm Up: Agent B must acknowledge and mirror this state change in <1 second)
     if role != peer_role:
         role = peer_role
         print(f"[{PEER_ID}] Mirrored role from {OTHER_ID}: role={role} (acknowledged in <1s)")

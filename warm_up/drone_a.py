@@ -73,7 +73,7 @@ def check_peer_stale():
 
 
 def toggle_role_to_scout():
-    """After 15 seconds, toggle role to 'scout' (Trigger Action from track.md)."""
+    """After 15 seconds, toggle role to 'scout' (Warm Up trigger action)."""
     time.sleep(15)
     global role
     role = "scout"

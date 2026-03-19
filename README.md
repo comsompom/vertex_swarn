@@ -12,7 +12,7 @@ This repository is our challenge entry. It includes the **Warm Up** (Stateful Ha
 |------|--------------|
 | **Warm Up** | Two agents discover each other, sync state (`peer_id`, `role`, `status`), send heartbeats, mirror roles, and recover from failure. Implemented in `warm_up/` (standalone demo, MQTT, or AirSim + Tashi Vertex). |
 | **Track 1 — Serve and Protect Bastion** | **Multi-drone solution:** FoxMQ (Vertex) broker; 3 sentries + 3 drones + 1 spectator by default; **Add nodes** (1–20) and **AI Control** (handoff, rebalance, stale recovery, OpenAI tactical); Flask dashboard at http://127.0.0.1:5000 with mission logo, **Logs** (operation log), E-Stop **modal** (red, centered when fleet frozen); E-Stop/Unstop/chaos from CLI. Implemented in `track1_serve_and_protect/`. |
-| **Docs** | Challenge description, tracks, rules, execution plan, and pre-flight checklist in the repo root. |
+| **Docs** | This README, [PRESENTATION.html](PRESENTATION.html), [warm_up/README.md](warm_up/README.md), and [track1_serve_and_protect/README.md](track1_serve_and_protect/README.md). Challenge details: [Vertex Swarm Challenge](https://dorahacks.io/hackathon/global-vertex-swarm-challenge/). |
 
 We follow the challenge pillars: **Coordinate** (discover, share state, cooperate), **Automate** (hand off, self-heal), **Secure** (P2P E-Stop, fault → fleet freeze).
 
@@ -23,13 +23,7 @@ We follow the challenge pillars: **Coordinate** (discover, share state, cooperat
 ```
 vertex_swarn/
 ├── README.md                 # This file — project overview and how to run
-├── description.md            # Official challenge description
-├── track.md                  # Warm Up + Track 1–3 specs and judging
-├── rules.md                  # Submission rules (one Warm-Up, one main track)
-├── HACKATHON_PREFLIGHT.md    # Pre-flight checklist (Discord, handshake, bounty)
-├── VIDEO_RECORDING_GUIDE.md  # How to record the presentation video
-├── PRESENTATION.html         # Standalone slide deck for the video guide (open in browser)
-├── suggeestion.md            # Strategy and project ideas
+├── PRESENTATION.html         # Slide deck (open in browser)
 │
 ├── warm_up/                  # Warm Up: Stateful Handshake (Python + Drones)
 │   ├── README.md
@@ -41,7 +35,6 @@ vertex_swarn/
 │
 └── track1_serve_and_protect/ # Track 1: Serve and Protect Bastion
     ├── README.md
-    ├── demo_script.md        # Step-by-step demo for pitch/video
     ├── web/                  # Flask web dashboard (templates + static)
 │   ├── dashboard.py      # App and MQTT (run: python -m web.dashboard)
 │   ├── strategies.py    # AI Control strategies (handoff, rebalance, stale, OpenAI)
@@ -141,6 +134,11 @@ pip install -r requirements.txt
 python run_swarm.py --start-broker-foxmq
 ```
 
+```bash
+cd track1_serve_and_protect
+python run_swarm.py --start-broker-foxmq
+```
+
 This starts the FoxMQ broker (Vertex-backed MQTT) and launches **three sentries, three drones, and one spectator** by default (7 agents). Use `--sentries N --drones M` to override. You can also add more drones or sentries from the **Flask dashboard** (“Add nodes” controls). From the dashboard: Add nodes (more drones/sentries), AI Control (strategies). See track1_serve_and_protect/README.md.
 
 **Alternatives:** Use `--start-broker-docker` for Mosquitto in Docker, or start a broker (e.g. `mosquitto -v`) in another terminal and run `python run_swarm.py` without `--start-broker-foxmq`.
@@ -208,16 +206,9 @@ Environment variables (or edit `track1_serve_and_protect/config.py`):
 
 | Document | Description |
 |----------|-------------|
-| [SUBMISSION_CHECKLIST.md](SUBMISSION_CHECKLIST.md) | Final steps and links before submitting to the hackathon. |
-| [VIDEO_RECORDING_GUIDE.md](VIDEO_RECORDING_GUIDE.md) | How to record the presentation video (tools, steps, tips, submission). |
-| [description.md](description.md) | Official challenge: pillars, tracks, prizes. |
-| [track.md](track.md) | Warm Up + Track 1–3 specs and judging. |
-| [rules.md](rules.md) | Submission rules (one Warm-Up, one main track; team ≤5). |
-| [HACKATHON_PREFLIGHT.md](HACKATHON_PREFLIGHT.md) | Discord, handshake proof, $50 daily bounty, track unlock. |
 | [warm_up/README.md](warm_up/README.md) | Warm Up: setup, AirSim, MQTT, standalone demo. |
 | [track1_serve_and_protect/README.md](track1_serve_and_protect/README.md) | Track 1: features, run, dashboard, tests. |
-| [track1_serve_and_protect/demo_script.md](track1_serve_and_protect/demo_script.md) | Step-by-step demo for pitch or video. |
-| [PRESENTATION.html](PRESENTATION.html) | Standalone slide deck for the video guide (open in browser). |
+| [PRESENTATION.html](PRESENTATION.html) | Slide deck (open in browser). |
 
 ---
 
@@ -226,4 +217,5 @@ Environment variables (or edit `track1_serve_and_protect/config.py`):
 - **Challenge:** [Vertex Swarm Challenge 2026](https://dorahacks.io/hackathon/global-vertex-swarm-challenge/) (DoraHacks)
 - **Discord (BUIDL / handshake):** [Vertex Swarm](https://discord.com/channels/1011889557526032464/1483341393052176526)
 - **Warm Up video:** [Stateful Handshake on YouTube](https://www.youtube.com/watch?v=L9qMzjdvfI0)
+- **Demo video (Track 1):** [Serve and Protect Bastion — P2P Drone Swarm on YouTube](https://www.youtube.com/watch?v=zffX1K1QunQ)
 - **Tashi / Vertex:** [tashi.dev](https://www.tashi.dev/), [tashi-vertex-rs](https://github.com/tashigit/tashi-vertex-rs), [AirSim + Vertex starter kit](https://github.com/tashigit/airsim-vertex-starter-kit)

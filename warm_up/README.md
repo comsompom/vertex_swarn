@@ -15,12 +15,12 @@ For MQTT or AirSim + Tashi Vertex, see below.
 
 ## Hackathon participation (pre-flight)
 
-Before hacking, complete the **[pre-flight checklist](../HACKATHON_PREFLIGHT.md)** in the repo root:
+Before hacking:
 
 1. **Join Discord** — [Vertex Swarm](https://discord.gg/r8YphnA8) and [Tashi](https://discord.com/invite/SJge5pTwkb) (required for bounty).
 2. **Run the handshake** — Use the standalone demo, AirSim mission, or MQTT option below.
 3. **Record proof** — Short video or log showing discovery, state sync, heartbeats, and role mirror.
-4. **Submit for the $50 Daily Bounty** — Post your proof in the Discord channel (see [HACKATHON_PREFLIGHT.md](../HACKATHON_PREFLIGHT.md) for the link). This also unlocks the main tracks.
+4. **Submit for the $50 Daily Bounty** — Post your proof in the [Vertex Swarm handshake channel](https://discord.com/channels/1011889557526032464/1483341393052176526). This also unlocks the main tracks.
 
 **Video demo (Stateful Handshake):** [Watch on YouTube](https://www.youtube.com/watch?v=L9qMzjdvfI0)
 
@@ -181,7 +181,7 @@ warm_up/
 
 ## References
 
-- [Track: Warm Up](../track.md) — Stateful Handshake acceptance criteria.
+- [Track: Warm Up](https://dorahacks.io/hackathon/global-vertex-swarm-challenge/tracks#-warm-up-the-stateful-handshake) — Stateful Handshake acceptance criteria.
 - [AirSim + Vertex starter kit](https://github.com/tashigit/airsim-vertex-starter-kit) — Base for this warm up.
 - [Tashi Vertex RS](https://github.com/tashigit/tashi-vertex-rs) — P2P consensus engine (build and point `TASHI_VERTEX_PATH` here).
 - [Tashi docs](https://www.tashi.dev/) — Vertex coordination layer.

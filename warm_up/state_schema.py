@@ -1,5 +1,5 @@
 """
-Replicated JSON state schema for the Warm Up (track.md).
+Replicated JSON state schema for the Warm Up (Stateful Handshake).
 Each drone maintains: peer_id, last_seen_ms, role, status.
 """
 

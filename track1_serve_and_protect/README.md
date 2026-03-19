@@ -178,7 +178,6 @@ Tests cover: state schema and E-Stop payload, config (topics, roles, timing, das
 ```
 track1_serve_and_protect/
 ├── README.md                 # This file — project description and usage
-├── demo_script.md            # Step-by-step demo script
 ├── web/                      # Flask web dashboard (HTML/CSS/JS separated)
 │   ├── __init__.py
 │   ├── dashboard.py          # App and MQTT logic (run: python -m web.dashboard)
@@ -206,6 +205,6 @@ track1_serve_and_protect/
 
 ## References
 
-- [track.md](../track.md) — Track 1 description and examples.
-- [rules.md](../rules.md) — Submission rules and terms.
-- Discord (BUIDL submission): https://discord.com/channels/1011889557526032464/1483341393052176526
+- **Demo video:** [Serve and Protect Bastion — P2P Drone Swarm (YouTube)](https://www.youtube.com/watch?v=zffX1K1QunQ)
+- **Challenge / tracks:** [Vertex Swarm Challenge 2026](https://dorahacks.io/hackathon/global-vertex-swarm-challenge/)
+- **Discord (BUIDL submission):** https://discord.com/channels/1011889557526032464/1483341393052176526
