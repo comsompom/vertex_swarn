@@ -7,8 +7,13 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 </head>
 <body>
-  <h1>Serve and Protect Bastion</h1>
-  <p class="subtitle">Track 1 — Swarm coordination dashboard (live from MQTT)</p>
+  <header class="dashboard-header">
+    <div class="header-text">
+      <h1>Serve and Protect Bastion</h1>
+      <p class="subtitle">Track 1 — Swarm coordination dashboard (live from MQTT)</p>
+    </div>
+    <img src="{{ url_for('static', filename='mission_logo.jpg') }}" alt="Mission logo" class="header-logo">
+  </header>
   <div id="e-stop" class="e-stop-banner">FLEET FROZEN — E-Stop active</div>
   <div id="ai-suggestion" class="ai-suggestion"></div>
   <div class="top-tabs">

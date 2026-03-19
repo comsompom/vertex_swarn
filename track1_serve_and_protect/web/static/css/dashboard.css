@@ -10,6 +10,31 @@ body {
   color: #e6edf3;
 }
 
+.dashboard-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0;
+  min-height: 0;
+}
+
+.header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.header-logo {
+  flex-shrink: 0;
+  height: 3.25rem;
+  width: auto;
+  max-width: 10rem;
+  object-fit: contain;
+  display: block;
+  margin: 0;
+  vertical-align: top;
+}
+
 h1 {
   margin: 0 0 0.5rem;
   font-size: 1.5rem;
