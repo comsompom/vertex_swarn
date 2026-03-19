@@ -173,6 +173,44 @@ h1 {
   background: #a371f7;
 }
 
+.btn-e-stop {
+  background: #da3636;
+  color: #fff;
+}
+
+.btn-e-stop:hover:not(:disabled) {
+  background: #f85149;
+}
+
+.btn-unstop {
+  background: #238636;
+  color: #fff;
+}
+
+.btn-unstop:hover:not(:disabled) {
+  background: #2ea043;
+}
+
+.btn-chaos {
+  background: #9e6a03;
+  color: #fff;
+}
+
+.btn-chaos:hover:not(:disabled) {
+  background: #d29922;
+}
+
+.fleet-message {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: #7ee787;
+  min-height: 1.25rem;
+}
+
+.fleet-message.error {
+  color: #f85149;
+}
+
 .ai-control-result {
   margin-top: 0.75rem;
   padding: 0.75rem;

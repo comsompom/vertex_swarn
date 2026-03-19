@@ -76,6 +76,27 @@ class TestEStopPayload:
         assert state.parse_e_stop(None) is None
 
 
+class TestUnstopPayload:
+    def test_make_unstop_payload(self):
+        p = state.make_unstop_payload("dashboard", "resume")
+        assert p["source"] == "dashboard"
+        assert p["reason"] == "resume"
+        assert "ts_ms" in p
+        assert isinstance(p["ts_ms"], int)
+
+    def test_parse_unstop_valid(self):
+        p = state.make_unstop_payload("op", "resume")
+        js = json.dumps(p)
+        back = state.parse_unstop(js)
+        assert back is not None
+        assert back["source"] == "op"
+        assert back["reason"] == "resume"
+
+    def test_parse_unstop_invalid(self):
+        assert state.parse_unstop("invalid") is None
+        assert state.parse_unstop(None) is None
+
+
 class TestThreatEntry:
     def test_make_threat_entry(self):
         t = state.make_threat_entry("B2", 3, "drone-1")

@@ -26,6 +26,7 @@ except ImportError:
 from flask import Flask, jsonify, render_template, request
 
 import config
+import state
 from web.strategies import run_strategy, STRATEGIES
 
 # Sectors for sentries (cycle when adding from UI)
@@ -53,6 +54,7 @@ def run_mqtt(broker: str, port: int):
         if rc == 0:
             c.subscribe(config.STATE_TOPIC_SUBSCRIBE)
             c.subscribe(config.E_STOP_TOPIC)
+            c.subscribe(config.UNSTOP_TOPIC)
             c.subscribe(config.AI_SUGGESTIONS_TOPIC)
     client.on_connect = on_connect
 
@@ -63,6 +65,10 @@ def run_mqtt(broker: str, port: int):
                 e_stop_source[0] = json.loads(msg.payload.decode()).get("source", "?")
             except Exception:
                 e_stop_source[0] = "?"
+            return
+        if msg.topic == config.UNSTOP_TOPIC:
+            e_stop_at[0] = None
+            e_stop_source[0] = None
             return
         if msg.topic == config.AI_SUGGESTIONS_TOPIC:
             try:
@@ -208,6 +214,88 @@ def api_ai_control():
         pass  # don't fail the API if publish fails
 
     return jsonify(result)
+
+
+def _publish_mqtt_once(topic: str, payload: str) -> bool:
+    """Connect, publish one message, allow flush, disconnect. Returns True on success."""
+    try:
+        client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=f"bastion-dashboard-fleet-{int(time.time() * 1000)}")
+        client.connect(config.MQTT_BROKER, config.MQTT_PORT, 60)
+        client.loop_start()
+        time.sleep(0.25)  # allow connection to complete
+        client.publish(topic, payload, qos=1)
+        time.sleep(0.4)   # allow publish to flush before disconnect
+        client.disconnect()
+        client.loop_stop()
+        return True
+    except Exception:
+        return False
+
+
+def _publish_e_stop():
+    """Publish E-Stop to mesh; update local state so UI shows frozen."""
+    if not _publish_mqtt_once(config.E_STOP_TOPIC, json.dumps(state.make_e_stop_payload("dashboard", "hold_fire"))):
+        return False
+    e_stop_at[0] = time.time()
+    e_stop_source[0] = "dashboard"
+    return True
+
+
+def _publish_unstop():
+    """Publish Unstop to mesh; clear local state so UI shows resumed."""
+    if not _publish_mqtt_once(config.UNSTOP_TOPIC, json.dumps(state.make_unstop_payload("dashboard", "resume"))):
+        return False
+    e_stop_at[0] = None
+    e_stop_source[0] = None
+    return True
+
+
+@app.route("/api/fleet/e-stop", methods=["POST"])
+def api_fleet_e_stop():
+    """Trigger fleet E-Stop (freeze all nodes)."""
+    if _publish_e_stop():
+        return jsonify({"ok": True, "message": "E-Stop sent; fleet frozen."})
+    return jsonify({"ok": False, "error": "Failed to publish E-Stop"}), 500
+
+
+@app.route("/api/fleet/unstop", methods=["POST"])
+def api_fleet_unstop():
+    """Trigger fleet Unstop (resume all nodes)."""
+    if _publish_unstop():
+        return jsonify({"ok": True, "message": "Unstop sent; fleet resumed."})
+    return jsonify({"ok": False, "error": "Failed to publish Unstop"}), 500
+
+
+@app.route("/api/fleet/chaos-monkey", methods=["POST"])
+def api_fleet_chaos_monkey():
+    """Run chaos monkey: kill N random swarm nodes (default 2). Body: { \"kill\": 2 }."""
+    try:
+        data = request.get_json(force=True, silent=True) or {}
+        kill = max(1, min(int(data.get("kill", 2)), 10))
+    except (ValueError, TypeError):
+        kill = 2
+    chaos_script = os.path.join(_root, "chaos_monkey.py")
+    if not os.path.isfile(chaos_script):
+        return jsonify({"ok": False, "error": "chaos_monkey.py not found"}), 500
+    try:
+        proc = subprocess.run(
+            [sys.executable, chaos_script, "--kill", str(kill)],
+            cwd=_root,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        out = (proc.stdout or "").strip() or (proc.stderr or "").strip()
+        return jsonify({
+            "ok": True,
+            "message": f"Chaos monkey ran (kill={kill}).",
+            "output": out,
+            "returncode": proc.returncode,
+        })
+    except subprocess.TimeoutExpired:
+        return jsonify({"ok": False, "error": "Chaos monkey timed out"}), 500
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
 
 
 def main():

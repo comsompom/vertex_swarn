@@ -116,6 +116,7 @@
       color: #9ab89a;
     }
     .now-showing strong { color: #c9a227; }
+    .slide code { background: #0d1f0d; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.95em; color: #9ab89a; }
     .end-slide { text-align: center; padding-top: 3rem; }
     .end-slide h2 { border: none; color: #c9a227; font-size: 1.75rem; }
     .end-slide p { color: #7a8b7a; margin-top: 1rem; font-size: 1.1rem; }
@@ -155,9 +156,9 @@
     <section class="slide" data-slide="3">
       <h2>How we built it</h2>
       <p><span class="badge">Transport</span> FoxMQ (Vertex-backed MQTT). Byzantine-fault-tolerant broker; coordination layer is Vertex, not a single server.</p>
-      <p><span class="badge">Nodes</span> Python agents: sentries (sector, patrol), drones (battery, handoff), spectator (observability). All publish state and subscribe to E-Stop.</p>
-      <p><span class="badge">Dashboard</span> Flask app: live swarm state, Add nodes (spawn drones/sentries on demand), AI Control (run strategies; result goes to the mesh).</p>
-      <p><span class="badge">Safety</span> One E-Stop topic. Any node or operator can trigger; every subscriber freezes. No central controller.</p>
+      <p><span class="badge">Nodes</span> Python agents: sentries (sector, patrol), drones (battery, handoff), spectator (observability). All publish state and subscribe to E-Stop and Unstop.</p>
+      <p><span class="badge">Dashboard</span> Flask app: live swarm state, Add nodes, Fleet control (E-Stop, Unstop, Chaos monkey), AI Control (run strategies; result goes to the mesh).</p>
+      <p><span class="badge">Safety</span> E-Stop and Unstop topics. Any node or operator can trigger; every subscriber freezes or resumes. No central controller.</p>
       <div class="now-showing"><strong>What you're seeing:</strong> A perimeter-defence system with no middleman. Coordination, automation, and security are distributed.</div>
     </section>
 
@@ -186,27 +187,27 @@
 
     <section class="slide" data-slide="6">
       <h2>Track 1 — Perimeter defence swarm</h2>
-      <p><strong>What we achieved:</strong> A multi-drone, multi-sentry swarm over FoxMQ (Vertex). Default: 3 sentries, 3 drones, 1 spectator. Add more from the dashboard. AI Control runs strategies (handoff, rebalance, stale recovery, OpenAI tactical) and publishes to the mesh. E-Stop freezes the fleet. Chaos monkey demonstrates no single point of failure.</p>
+      <p><strong>What we achieved:</strong> A multi-drone, multi-sentry swarm over FoxMQ (Vertex). Default: 3 sentries, 3 drones, 1 spectator. Add more from the dashboard. Fleet control: E-Stop (freeze), Unstop (resume), Chaos monkey (kill 2). AI Control runs strategies (handoff, rebalance, stale recovery, OpenAI tactical) and publishes to the mesh. No single point of failure.</p>
       <div class="now-showing"><strong>What you're seeing now:</strong> A live perimeter-defence scenario. Heterogeneous roles, shared state, and P2P safety — all without a central command post.</div>
     </section>
 
     <section class="slide" data-slide="7">
       <h2>Live — Swarm over Vertex/FoxMQ</h2>
-      <p>Sentries and drones are running. They connect to the same FoxMQ broker (Vertex-backed). Each node publishes its state; each subscribes to state and E-Stop. The spectator prints the consolidated view. No database, no cloud — just the mesh.</p>
+      <p>Sentries and drones are running. They connect to the same FoxMQ broker (Vertex-backed). Each node publishes its state; each subscribes to state, E-Stop, and Unstop. The spectator prints the consolidated view. No database, no cloud — just the mesh.</p>
       <div class="now-showing"><strong>What you're seeing now:</strong> The terminal (and/or dashboard) shows the live swarm: node IDs, roles, sectors, battery, last seen. This is the coordinated picture every participant shares. No master node holds the truth.</div>
     </section>
 
     <section class="slide" data-slide="8">
-      <h2>Live — Dashboard: Add nodes & AI Control</h2>
-      <p>The dashboard is a view into the same mesh. It displays all nodes, E-Stop status, and the latest AI suggestion. <strong>Add nodes</strong> spawns new drones or sentries that join the swarm immediately. <strong>AI Control</strong> runs a strategy (e.g. sector rebalance, low-battery handoff); the recommendation is published so the whole fleet can see it. Still no central orchestrator — the dashboard is just another consumer and a spawner.</p>
-      <div class="now-showing"><strong>What you're seeing now:</strong> The web UI with the swarm table, Add nodes panel, and AI Control. We can grow the fleet and run coordination strategies from one place, but the logic remains P2P.</div>
+      <h2>Live — Dashboard: Add nodes, Fleet control & AI Control</h2>
+      <p>The dashboard is a view into the same mesh. It displays all nodes, E-Stop status, and the latest AI suggestion. <strong>Add nodes</strong> spawns new drones or sentries. <strong>Fleet control</strong> provides E-Stop (freeze fleet), Unstop (resume fleet), and Chaos monkey (kill 2 nodes) — same as the CLI scripts. <strong>AI Control</strong> runs a strategy (e.g. sector rebalance, low-battery handoff); the recommendation is published to the mesh. Still no central orchestrator — the dashboard is just another consumer and a spawner.</p>
+      <div class="now-showing"><strong>What you're seeing now:</strong> The web UI with the swarm table, Add nodes, Fleet control (E-Stop, Unstop, Chaos monkey), and AI Control. We can grow the fleet, freeze/resume, and run coordination strategies from one place; the logic remains P2P.</div>
     </section>
 
     <section class="slide" data-slide="9">
-      <h2>Resilience — E-Stop & chaos</h2>
-      <p><strong>E-Stop:</strong> One message on the E-Stop topic. Every node that subscribes freezes. Target: under 50 ms. No central controller to authorize — any node or operator can trigger. That's P2P safety.</p>
-      <p><strong>Chaos:</strong> We kill random nodes. The rest keep publishing. In a full deployment they would reallocate sectors and tasks. Here we prove: no master to crash. The swarm degrades; it does not collapse.</p>
-      <div class="now-showing"><strong>What you're seeing now:</strong> Either the fleet in frozen state (E-Stop active) or the aftermath of node loss — remaining units still in the mesh. Coordinate, automate, secure. No middleman.</div>
+      <h2>Resilience — E-Stop, Unstop & chaos</h2>
+      <p><strong>E-Stop:</strong> One message on the E-Stop topic. Every node that subscribes freezes. Target: under 50 ms. No central controller — any node or operator can trigger. <strong>Unstop:</strong> One message on the Unstop topic; the fleet resumes. Trigger from CLI (<code>unstop_trigger.py</code>) or the dashboard Fleet control tab.</p>
+      <p><strong>Chaos:</strong> We kill random nodes (CLI or dashboard). The rest keep publishing. In a full deployment they would reallocate sectors and tasks. Here we prove: no master to crash. The swarm degrades; it does not collapse.</p>
+      <div class="now-showing"><strong>What you're seeing now:</strong> Either the fleet frozen (E-Stop), resumed (Unstop), or the aftermath of node loss — remaining units still in the mesh. Coordinate, automate, secure. No middleman.</div>
     </section>
 
     <section class="slide" data-slide="10">

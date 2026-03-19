@@ -170,6 +170,73 @@
     return div.innerHTML;
   }
 
+  function showFleetMessage(text, isError) {
+    var el = document.getElementById('fleet-message');
+    if (!el) return;
+    el.textContent = text;
+    el.classList.toggle('error', !!isError);
+    if (text) {
+      setTimeout(function () { el.textContent = ''; }, 5000);
+    }
+  }
+
+  function triggerEStop() {
+    var btn = document.getElementById('btn-e-stop');
+    if (btn) btn.disabled = true;
+    fetch('/api/fleet/e-stop', { method: 'POST' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.ok) {
+          showFleetMessage('E-Stop sent; fleet frozen.', false);
+          fetchState();
+        } else {
+          showFleetMessage(data.error || 'E-Stop failed', true);
+        }
+      })
+      .catch(function () { showFleetMessage('Request failed', true); })
+      .finally(function () { if (btn) btn.disabled = false; });
+  }
+
+  function triggerUnstop() {
+    var btn = document.getElementById('btn-unstop');
+    if (btn) btn.disabled = true;
+    fetch('/api/fleet/unstop', { method: 'POST' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.ok) {
+          showFleetMessage('Unstop sent; fleet resumed.', false);
+          fetchState();
+        } else {
+          showFleetMessage(data.error || 'Unstop failed', true);
+        }
+      })
+      .catch(function () { showFleetMessage('Request failed', true); })
+      .finally(function () { if (btn) btn.disabled = false; });
+  }
+
+  function triggerChaosMonkey() {
+    var btn = document.getElementById('btn-chaos');
+    if (btn) btn.disabled = true;
+    fetch('/api/fleet/chaos-monkey', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kill: 2 })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.ok) {
+          var msg = data.message || 'Chaos monkey ran (kill 2).';
+          if (data.output) msg += ' ' + data.output;
+          showFleetMessage(msg, false);
+          fetchState();
+        } else {
+          showFleetMessage(data.error || 'Chaos monkey failed', true);
+        }
+      })
+      .catch(function () { showFleetMessage('Request failed', true); })
+      .finally(function () { if (btn) btn.disabled = false; });
+  }
+
   (function bindControls() {
     var btnDrone = document.getElementById('btn-add-drone');
     var btnSentry = document.getElementById('btn-add-sentry');
@@ -177,6 +244,12 @@
     if (btnSentry) btnSentry.addEventListener('click', function () { addNodes('sentry'); });
     var btnAi = document.getElementById('btn-ai-control');
     if (btnAi) btnAi.addEventListener('click', runAiControl);
+    var btnEStop = document.getElementById('btn-e-stop');
+    if (btnEStop) btnEStop.addEventListener('click', triggerEStop);
+    var btnUnstop = document.getElementById('btn-unstop');
+    if (btnUnstop) btnUnstop.addEventListener('click', triggerUnstop);
+    var btnChaos = document.getElementById('btn-chaos');
+    if (btnChaos) btnChaos.addEventListener('click', triggerChaosMonkey);
   })();
 
   fetchState();

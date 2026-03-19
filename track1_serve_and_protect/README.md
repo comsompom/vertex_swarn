@@ -18,7 +18,7 @@ A peer-to-peer **military defence swarm**: perimeter sensors, sentry rovers, and
 - **Self-healing:** Heartbeats and stale-peer detection; when a node drops, sectors and tasks can be reallocated; relay chains can re-form when comms degrade.
 - **Chaos testing:** A chaos-monkey script kills random nodes so you can verify rebalance and E-Stop behavior under failure.
 - **Multi-drone swarm:** Default 3 sentries + 3 drones + 1 spectator; add more from the dashboard (Add nodes, 1–20) so they join via FoxMQ/MQTT.
-- **Web dashboard:** Flask app at http://127.0.0.1:5000: live swarm state, E-Stop banner, **Add nodes** (drone/sentry), **AI Control** (Low-battery handoff, Sector rebalance, Stale recovery, OpenAI tactical).
+- **Web dashboard:** Flask app at http://127.0.0.1:5000: live swarm state, E-Stop banner, **Add nodes** (drone/sentry), **Fleet control** (E-Stop, Unstop, Chaos monkey), **AI Control** (Low-battery handoff, Sector rebalance, Stale recovery, OpenAI tactical).
 - **Optional AI agent:** Peer node `node_ai_agent.py` publishes OpenAI tactical suggestions to the mesh; set `OPENAI_API_KEY` to enable.
 
 ---
@@ -83,6 +83,7 @@ python -m web.dashboard
 
 Open **http://127.0.0.1:5000** in your browser. The dashboard:
 
+- **Fleet control** tab: **E-Stop** (freeze all nodes), **Unstop** (resume all nodes), **Chaos monkey (kill 2)** — same as running `python chaos_monkey.py --kill 2`.
 - Shows all nodes (role, status, sector, battery), E-Stop status, and the latest AI suggestion. Data refreshes every 2 seconds.
 - **Add nodes:** Use “Add drone” or “Add sentry” to start more nodes; choose a count (1–20) and they join the swarm via FoxMQ/MQTT.
 
@@ -106,15 +107,21 @@ To add an AI peer that publishes tactical suggestions (e.g. handoff or threat as
    ```
    It subscribes to swarm state and every 30 seconds sends a summary to OpenAI and publishes the suggestion to the mesh. The dashboard shows the latest suggestion. If `OPENAI_API_KEY` is not set, the agent still runs and publishes a placeholder message.
 
-### Trigger E-Stop
+### Trigger E-Stop and Unstop
 
-From another terminal, send a fleet-wide emergency stop:
+From another terminal (or use the **Fleet control** tab in the dashboard):
 
+**E-Stop (freeze fleet):**
 ```bash
 python e_stop_trigger.py
 ```
 
-All nodes that subscribe to the E-Stop topic will freeze (stop normal operation and log “FROZEN”). This demonstrates the P2P safety mechanism.
+**Unstop (resume fleet):**
+```bash
+python unstop_trigger.py
+```
+
+Nodes freeze on E-Stop and resume on Unstop (stop normal operation and log “FROZEN”). The **Fleet control** tab in the dashboard also provides E-Stop, Unstop, and Chaos monkey (kill 2) buttons.
 
 ### Run the chaos monkey
 
@@ -181,13 +188,14 @@ track1_serve_and_protect/
 ├── tests/                    # Unit and integration tests (pytest)
 ├── requirements.txt
 ├── config.py                 # Broker, topics, timeouts, roles, dashboard port
-├── state.py                  # Shared state schema, E-Stop payload
-├── node_sentry.py            # Sentry: patrol sector, respond to intrusions, E-Stop
+├── state.py                  # Shared state schema, E-Stop and Unstop payloads
+├── node_sentry.py            # Sentry: patrol sector, E-Stop/Unstop
 ├── node_drone.py             # Drone: recon, handoff when battery low
 ├── node_spectator.py         # Spectator: console view of swarm state
 ├── node_ai_agent.py          # Optional: OpenAI-powered suggestion peer (env: OPENAI_API_KEY)
 ├── run_swarm.py              # Launch N sentries + M drones + spectator
-├── e_stop_trigger.py         # Send E-Stop message
+├── e_stop_trigger.py         # Send E-Stop message (freeze fleet)
+├── unstop_trigger.py          # Send Unstop message (resume fleet)
 └── chaos_monkey.py           # Kill random nodes for resilience testing
 ```
 
@@ -195,7 +203,6 @@ track1_serve_and_protect/
 
 ## References
 
-- [PLAN.md](../PLAN.md) — Overall execution plan and warm-up status.
 - [track.md](../track.md) — Track 1 description and examples.
 - [rules.md](../rules.md) — Submission rules and terms.
 - Discord (BUIDL submission): https://discord.com/channels/1011889557526032464/1483341393052176526

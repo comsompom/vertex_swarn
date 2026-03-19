@@ -11,7 +11,7 @@ This repository is our challenge entry. It includes the **Warm Up** (Stateful Ha
 | Part | Description |
 |------|--------------|
 | **Warm Up** | Two agents discover each other, sync state (`peer_id`, `role`, `status`), send heartbeats, mirror roles, and recover from failure. Implemented in `warm_up/` (standalone demo, MQTT, or AirSim + Tashi Vertex). |
-| **Track 1 — Serve and Protect Bastion** | **Multi-drone solution:** FoxMQ (Vertex) broker; 3 sentries + 3 drones + 1 spectator by default; **Add nodes** from dashboard (1–20); **AI Control** (handoff, rebalance, stale recovery, OpenAI tactical); Flask dashboard at http://127.0.0.1:5000; E-Stop, chaos monkey, optional AI agent. Implemented in `track1_serve_and_protect/`. |
+| **Track 1 — Serve and Protect Bastion** | **Multi-drone solution:** FoxMQ (Vertex) broker; 3 sentries + 3 drones + 1 spectator by default; **Add nodes** from dashboard (1–20); **Fleet control** (E-Stop, Unstop, Chaos monkey) and **AI Control** (handoff, rebalance, stale recovery, OpenAI tactical); Flask dashboard at http://127.0.0.1:5000; optional AI agent. Implemented in `track1_serve_and_protect/`. |
 | **Docs** | Challenge description, tracks, rules, execution plan, and pre-flight checklist in the repo root. |
 
 We follow the challenge pillars: **Coordinate** (discover, share state, cooperate), **Automate** (hand off, self-heal), **Secure** (P2P E-Stop, fault → fleet freeze).
@@ -23,7 +23,6 @@ We follow the challenge pillars: **Coordinate** (discover, share state, cooperat
 ```
 vertex_swarn/
 ├── README.md                 # This file — project overview and how to run
-├── PLAN.md                   # Step-by-step execution plan and track choice
 ├── description.md            # Official challenge description
 ├── track.md                  # Warm Up + Track 1–3 specs and judging
 ├── rules.md                  # Submission rules (one Warm-Up, one main track)
@@ -52,7 +51,8 @@ vertex_swarn/
     ├── node_sentry.py        # Sentry node (sector patrol)
     ├── node_drone.py         # Drone node (recon, battery, handoff)
     ├── node_spectator.py     # Console view of swarm state
-    ├── e_stop_trigger.py     # Send E-Stop to fleet
+    ├── e_stop_trigger.py     # Send E-Stop (freeze fleet)
+    ├── unstop_trigger.py     # Send Unstop (resume fleet)
     ├── chaos_monkey.py       # Kill random nodes (resilience demo)
     ├── config.py, state.py
     ├── requirements.txt
@@ -77,11 +77,11 @@ vertex_swarn/
 - **Goal:** Perimeter-defence swarm with no central server: sentries patrol sectors, drones do recon and hand off when battery is low; one E-Stop freezes the fleet; chaos monkey proves resilience.
 - **Transport:** FoxMQ (Vertex-backed MQTT) for hackathon submission (`--start-broker-foxmq` or run `scripts/start_foxmq.py`); or Mosquitto/Docker for local demo.
 - **Nodes:**
-  - **Sentry** — Publishes state (role, status, sector_id, battery); subscribes to state + E-Stop; stops normal loop when E-Stop received.
+  - **Sentry** — Publishes state (role, status, sector_id, battery); subscribes to state, E-Stop, and Unstop; freezes on E-Stop, resumes on Unstop.
   - **Drone** — Same pattern; simulates battery drain; status becomes `low_battery_handoff` when battery ≤ 15%.
-  - **Spectator** — Subscribes only; prints swarm state to console.
-  - **Dashboard** — Flask app: MQTT client in background thread, serves HTML table + E-Stop banner; `/api/state` returns JSON; front end polls every 2 s.
-- **Topics:** `bastion/serve_and_protect/state/<node_id>`, `.../state/+`, `.../e_stop`.
+  - **Spectator** — Subscribes only; prints swarm state and E-Stop/Unstop status to console.
+  - **Dashboard** — Flask app: live swarm table, E-Stop banner, **Fleet control** (E-Stop, Unstop, Chaos monkey), **Add nodes**, **AI Control**; `/api/state` and `/api/fleet/*`; front end polls every 2 s.
+- **Topics:** `bastion/serve_and_protect/state/<node_id>`, `.../state/+`, `.../e_stop`, `.../unstop`.
 - **State schema:** `node_id`, `last_seen_ms`, `role`, `status`, `sector_id`, `battery`, `last_threat` (see `track1_serve_and_protect/state.py`).
 
 ---
@@ -208,9 +208,7 @@ Environment variables (or edit `track1_serve_and_protect/config.py`):
 
 | Document | Description |
 |----------|-------------|
-| [PLAN.md](PLAN.md) | Full execution plan, track choice, phases, checklist. |
-| [HACKATHON_COMPLIANCE.md](HACKATHON_COMPLIANCE.md) | Checklist vs Warm Up, Track 1, and rules. |
-| [IMPROVEMENTS.md](IMPROVEMENTS.md) | Suggestions to make the project more professional. |
+| [SUBMISSION_CHECKLIST.md](SUBMISSION_CHECKLIST.md) | Final steps and links before submitting to the hackathon. |
 | [VIDEO_RECORDING_GUIDE.md](VIDEO_RECORDING_GUIDE.md) | How to record the presentation video (tools, steps, tips, submission). |
 | [description.md](description.md) | Official challenge: pillars, tracks, prizes. |
 | [track.md](track.md) | Warm Up + Track 1–3 specs and judging. |
@@ -219,7 +217,6 @@ Environment variables (or edit `track1_serve_and_protect/config.py`):
 | [warm_up/README.md](warm_up/README.md) | Warm Up: setup, AirSim, MQTT, standalone demo. |
 | [track1_serve_and_protect/README.md](track1_serve_and_protect/README.md) | Track 1: features, run, dashboard, tests. |
 | [track1_serve_and_protect/demo_script.md](track1_serve_and_protect/demo_script.md) | Step-by-step demo for pitch or video. |
-| [VIDEO_RECORDING_GUIDE.md](VIDEO_RECORDING_GUIDE.md) | How to record the presentation video. |
 | [PRESENTATION.html](PRESENTATION.html) | Standalone slide deck for the video guide (open in browser). |
 
 ---

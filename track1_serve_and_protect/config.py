@@ -16,6 +16,7 @@ TOPIC_PREFIX = "bastion/serve_and_protect"
 STATE_TOPIC_TEMPLATE = f"{TOPIC_PREFIX}/state/{{node_id}}"
 STATE_TOPIC_SUBSCRIBE = f"{TOPIC_PREFIX}/state/+"
 E_STOP_TOPIC = f"{TOPIC_PREFIX}/e_stop"
+UNSTOP_TOPIC = f"{TOPIC_PREFIX}/unstop"
 THREAT_MAP_TOPIC = f"{TOPIC_PREFIX}/threat_map"
 AI_SUGGESTIONS_TOPIC = f"{TOPIC_PREFIX}/ai_suggestions"
 

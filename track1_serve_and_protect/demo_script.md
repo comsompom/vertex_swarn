@@ -6,7 +6,7 @@ Use this for the live pitch or video submission.
 
 ## Prerequisites
 
-- MQTT broker running (e.g. `mosquitto -v` on 1883), or FoxMQ/Vertex for real submission.
+- MQTT broker running (e.g. `mosquitto -v` on 1883), or FoxMQ/Vertex for real submission: `python run_swarm.py --start-broker-foxmq`.
 - Python: `pip install -r requirements.txt`
 
 ---
@@ -15,12 +15,13 @@ Use this for the live pitch or video submission.
 
 ```bash
 cd track1_serve_and_protect
-python run_swarm.py --sentries 2 --drones 2
+python run_swarm.py --start-broker-foxmq
+# Or: python run_swarm.py --sentries 2 --drones 2  (if broker already running)
 ```
 
 You should see: "Started sentry-1 ...", "Started drone-1 ...", "Started spectator ...". Spectator prints swarm state every few seconds.
 
-**Optional:** In another terminal run the Flask dashboard for a web view: `python -m web.dashboard` (from `track1_serve_and_protect`), then open http://127.0.0.1:5000.
+**Optional:** In another terminal run the Flask dashboard: `python -m web.dashboard` (from `track1_serve_and_protect`), then open http://127.0.0.1:5000. The dashboard has **Add nodes**, **Fleet control** (E-Stop, Unstop, Chaos monkey), and **AI Control**.
 
 ---
 
@@ -49,18 +50,21 @@ python chaos_monkey.py --kill 2
 
 ---
 
-## Step 4: E-Stop (30 s)
+## Step 4: E-Stop and Unstop (30 s)
 
-In a third terminal:
+**Option A — from dashboard:** Open the **Fleet control** tab. Click **E-Stop** (fleet freezes). Then click **Unstop** (fleet resumes). Same effect as the CLI.
+
+**Option B — from terminal:**
 
 ```bash
 cd track1_serve_and_protect
-python e_stop_trigger.py
+python e_stop_trigger.py    # freeze fleet
+python unstop_trigger.py   # resume fleet
 ```
 
-**Narrative:** "One E-Stop message from any node or operator. Every node freezes in under 50 ms. No central controller — pure P2P safety."
+**Narrative:** "One E-Stop message and every node freezes in under 50 ms. Unstop resumes them. No central controller — pure P2P safety."
 
-Check the first terminal (run_swarm): all nodes should log "E-STOP received — FROZEN" and spectator shows "FLEET FROZEN". If the Flask dashboard is running, the page will show "FLEET FROZEN — E-Stop active".
+Check the first terminal (run_swarm): nodes log "E-STOP received — FROZEN" then "UNSTOP received — RESUMED". If the Flask dashboard is running, it shows "FLEET FROZEN" then clears when Unstop is sent.
 
 ---
 
@@ -73,7 +77,7 @@ Check the first terminal (run_swarm): all nodes should log "E-STOP received — 
 
 ## For BUIDL submission
 
-- Replace MQTT with **Vertex 2.0** (or FoxMQ) in `config.py` and node scripts.
-- Add **CRDT** for threat map in `state.py` and merge logic in nodes.
+- Use **FoxMQ (Vertex)** for coordination: `python run_swarm.py --start-broker-foxmq`.
+- Add **CRDT** for threat map in `state.py` and merge logic in nodes (optional).
 - Optionally add **Toxiproxy** or **tc** to simulate packet loss and show robustness.
-- Record a short video of: swarm → chaos → E-Stop, and submit link + repo to Discord.
+- Record a short video of: swarm → dashboard (Add nodes, Fleet control, AI Control) → E-Stop / Unstop → chaos, and submit link + repo to Discord.

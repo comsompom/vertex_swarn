@@ -32,7 +32,8 @@ def main():
             return
         client.subscribe(config.STATE_TOPIC_SUBSCRIBE)
         client.subscribe(config.E_STOP_TOPIC)
-        print("[spectator] Connected; listening for state and E-Stop")
+        client.subscribe(config.UNSTOP_TOPIC)
+        print("[spectator] Connected; listening for state, E-Stop and Unstop")
 
     def on_message(client, userdata, msg):
         if msg.topic == config.E_STOP_TOPIC:
@@ -42,6 +43,14 @@ def main():
                 print(f"[spectator] E-STOP from {payload.get('source', '?')} — FLEET FROZEN")
             except Exception:
                 print("[spectator] E-STOP — FLEET FROZEN")
+            return
+        if msg.topic == config.UNSTOP_TOPIC:
+            e_stop_at[0] = None
+            try:
+                payload = json.loads(msg.payload.decode())
+                print(f"[spectator] UNSTOP from {payload.get('source', '?')} — FLEET RESUMED")
+            except Exception:
+                print("[spectator] UNSTOP — FLEET RESUMED")
             return
         if msg.topic.startswith(f"{config.TOPIC_PREFIX}/state/"):
             try:

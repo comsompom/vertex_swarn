@@ -54,6 +54,22 @@ def parse_e_stop(payload: str) -> dict | None:
         return None
 
 
+# ---- Unstop (resume after E-Stop)
+def make_unstop_payload(source_node_id: str, reason: str = "resume") -> dict:
+    return {
+        "source": source_node_id,
+        "reason": reason,
+        "ts_ms": int(time.time() * 1000),
+    }
+
+
+def parse_unstop(payload: str) -> dict | None:
+    try:
+        return json.loads(payload)
+    except (json.JSONDecodeError, TypeError):
+        return None
+
+
 # ---- Threat map (CRDT in full impl: merge by position/severity) ----
 def make_threat_entry(sector_id: str, severity: int, claimed_by: str | None = None) -> dict:
     return {"sector_id": sector_id, "severity": severity, "claimed_by": claimed_by}

@@ -36,6 +36,7 @@ def main():
             return
         client.subscribe(config.STATE_TOPIC_SUBSCRIBE)
         client.subscribe(config.E_STOP_TOPIC)
+        client.subscribe(config.UNSTOP_TOPIC)
         print(f"[{node_id}] Connected; sector={sector_id}")
 
     def on_message(client, userdata, msg):
@@ -46,6 +47,14 @@ def main():
                 print(f"[{node_id}] E-STOP received from {payload.get('source', '?')} — FROZEN")
             except Exception:
                 print(f"[{node_id}] E-STOP received — FROZEN")
+            return
+        if msg.topic == config.UNSTOP_TOPIC:
+            frozen[0] = False
+            try:
+                payload = json.loads(msg.payload.decode())
+                print(f"[{node_id}] UNSTOP received from {payload.get('source', '?')} — RESUMED")
+            except Exception:
+                print(f"[{node_id}] UNSTOP received — RESUMED")
             return
         # State from peers (optional: merge into local view)
         if msg.topic.startswith(f"{config.TOPIC_PREFIX}/state/"):
