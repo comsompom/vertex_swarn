@@ -46,6 +46,23 @@ e_stop_at = [None]  # timestamp or None
 e_stop_source = [None]
 last_ai_suggestion = [None]  # { "node_id", "ts_ms", "suggestion" } or None
 
+# Operation logs (add_node, ai_control, e_stop, unstop) — thread-safe
+_operation_logs = []
+_logs_lock = threading.Lock()
+_MAX_LOGS = 200
+
+
+def _log(op_type: str, message: str):
+    """Append a log entry (thread-safe)."""
+    with _logs_lock:
+        _operation_logs.append({
+            "ts": time.time(),
+            "type": op_type,
+            "message": message,
+        })
+        while len(_operation_logs) > _MAX_LOGS:
+            _operation_logs.pop(0)
+
 
 def run_mqtt(broker: str, port: int):
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="bastion-dashboard")
@@ -61,13 +78,17 @@ def run_mqtt(broker: str, port: int):
         if msg.topic == config.E_STOP_TOPIC:
             e_stop_at[0] = time.time()
             try:
-                e_stop_source[0] = json.loads(msg.payload.decode()).get("source", "?")
+                src = json.loads(msg.payload.decode()).get("source", "?")
+                e_stop_source[0] = src
+                _log("e_stop", f"E-Stop received from {src} — fleet frozen")
             except Exception:
                 e_stop_source[0] = "?"
+                _log("e_stop", "E-Stop received — fleet frozen")
             return
         if msg.topic == config.UNSTOP_TOPIC:
             e_stop_at[0] = None
             e_stop_source[0] = None
+            _log("unstop", "Unstop received — fleet resumed")
             return
         if msg.topic == config.AI_SUGGESTIONS_TOPIC:
             try:
@@ -167,6 +188,8 @@ def api_nodes_add():
         if proc is None:
             return jsonify({"ok": False, "error": f"Failed to spawn {node_id}", "added": added}), 500
         added.append({"node_id": node_id, "role": role, "pid": proc.pid})
+    names = ", ".join(a["node_id"] for a in added)
+    _log("add_node", f"Added {len(added)} {role}(s): {names}")
     return jsonify({"ok": True, "added": added})
 
 
@@ -196,6 +219,9 @@ def api_ai_control():
     if not result.get("ok"):
         return jsonify(result), 400
 
+    rec = (result.get("recommendation") or "")[:80]
+    _log("ai_control", f"AI Control: {strategy_name} — {rec or 'ok'}")
+
     # Publish to mesh so other nodes (and dashboard) can see this recommendation
     try:
         client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="bastion-dashboard-ai-control")
@@ -213,6 +239,19 @@ def api_ai_control():
         pass  # don't fail the API if publish fails
 
     return jsonify(result)
+
+
+@app.route("/api/logs")
+def api_logs():
+    """Return recent operation logs (newest first)."""
+    with _logs_lock:
+        entries = list(_operation_logs)
+    # Newest last in list; reverse so newest first for display
+    entries.reverse()
+    return jsonify({
+        "ok": True,
+        "logs": [{"ts": e["ts"], "type": e["type"], "message": e["message"]} for e in entries],
+    })
 
 
 def main():

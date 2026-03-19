@@ -6,13 +6,13 @@
 
   function render(data) {
     const tbody = document.getElementById('tbody');
-    const eStopEl = document.getElementById('e-stop');
+    const eStopModal = document.getElementById('e-stop-modal');
     const aiEl = document.getElementById('ai-suggestion');
 
-    if (data.e_stop_active) {
-      eStopEl.classList.add('active');
-    } else {
-      eStopEl.classList.remove('active');
+    if (data.e_stop_active && eStopModal) {
+      eStopModal.removeAttribute('hidden');
+    } else if (eStopModal) {
+      eStopModal.setAttribute('hidden', '');
     }
 
     if (data.last_ai_suggestion && data.last_ai_suggestion.suggestion) {
@@ -170,6 +170,40 @@
     return div.innerHTML;
   }
 
+  function formatLogTime(ts) {
+    if (ts == null) return '—';
+    var d = new Date(ts * 1000);
+    return d.toLocaleTimeString() + ' ' + d.toLocaleDateString();
+  }
+
+  function openLogsModal() {
+    var modal = document.getElementById('logs-modal');
+    var listEl = document.getElementById('logs-list');
+    if (!modal || !listEl) return;
+    fetch('/api/logs')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var logs = (data.logs || []);
+        if (logs.length === 0) {
+          listEl.innerHTML = '<p class="log-entry">No log entries yet.</p>';
+        } else {
+          listEl.innerHTML = logs.map(function (e) {
+            return '<div class="log-entry"><span class="log-ts">' + escapeHtml(formatLogTime(e.ts)) + '</span> <span class="log-msg">' + escapeHtml(e.message || '') + '</span></div>';
+          }).join('');
+        }
+        modal.removeAttribute('hidden');
+      })
+      .catch(function () {
+        listEl.innerHTML = '<p class="log-entry">Failed to load logs.</p>';
+        modal.removeAttribute('hidden');
+      });
+  }
+
+  function closeLogsModal() {
+    var modal = document.getElementById('logs-modal');
+    if (modal) modal.setAttribute('hidden', '');
+  }
+
   (function bindControls() {
     var btnDrone = document.getElementById('btn-add-drone');
     var btnSentry = document.getElementById('btn-add-sentry');
@@ -177,6 +211,14 @@
     if (btnSentry) btnSentry.addEventListener('click', function () { addNodes('sentry'); });
     var btnAi = document.getElementById('btn-ai-control');
     if (btnAi) btnAi.addEventListener('click', runAiControl);
+    var btnLogs = document.getElementById('btn-logs');
+    if (btnLogs) btnLogs.addEventListener('click', openLogsModal);
+    var logsClose = document.getElementById('logs-modal-close');
+    if (logsClose) logsClose.addEventListener('click', closeLogsModal);
+    var logsOverlay = document.getElementById('logs-modal');
+    if (logsOverlay) logsOverlay.addEventListener('click', function (e) {
+      if (e.target === logsOverlay) closeLogsModal();
+    });
   })();
 
   fetchState();

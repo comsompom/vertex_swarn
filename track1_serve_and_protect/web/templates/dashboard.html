@@ -12,10 +12,30 @@
       <h1>Serve and Protect Bastion</h1>
       <p class="subtitle">Track 1 — Swarm coordination dashboard (live from MQTT)</p>
     </div>
-    <img src="{{ url_for('static', filename='mission_logo.jpg') }}" alt="Mission logo" class="header-logo">
+    <div class="header-right">
+      <button type="button" id="btn-logs" class="btn btn-logs" aria-label="View operation logs">Logs</button>
+      <img src="{{ url_for('static', filename='mission_logo.jpg') }}" alt="Mission logo" class="header-logo">
+    </div>
   </header>
-  <div id="e-stop" class="e-stop-banner">FLEET FROZEN — E-Stop active</div>
   <div id="ai-suggestion" class="ai-suggestion"></div>
+
+  <!-- E-Stop modal: centered, red border & text, rounded (shown when fleet frozen) -->
+  <div id="e-stop-modal" class="modal-overlay e-stop-modal-overlay" role="alert" aria-live="assertive" hidden>
+    <div class="modal-content e-stop-modal-content">
+      <p class="e-stop-modal-text">FLEET FROZEN — E-Stop active</p>
+    </div>
+  </div>
+
+  <!-- Logs modal: opened by Logs button -->
+  <div id="logs-modal" class="modal-overlay logs-modal-overlay" aria-modal="true" aria-labelledby="logs-modal-title" hidden>
+    <div class="modal-content logs-modal-content">
+      <div class="logs-modal-header">
+        <h2 id="logs-modal-title" class="logs-modal-title">Operation logs</h2>
+        <button type="button" id="logs-modal-close" class="modal-close" aria-label="Close logs">&times;</button>
+      </div>
+      <div id="logs-list" class="logs-list"></div>
+    </div>
+  </div>
   <div class="top-tabs">
     <section class="controls tab-panel" aria-label="Add nodes">
       <h2 class="controls-title">Add nodes</h2>
