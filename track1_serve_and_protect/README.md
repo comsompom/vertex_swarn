@@ -61,6 +61,13 @@ pip install -r requirements.txt   # first time only
 python run_swarm.py --start-broker-foxmq
 ```
 
+in the case the requirements already installed
+
+```bash
+cd track1_serve_and_protect # first time only
+python run_swarm.py --start-broker-foxmq
+```
+
 This starts the FoxMQ broker (if not already running) and launches **3 sentries, 3 drones, and 1 spectator** by default (7 agents; use `--sentries N --drones M` to override). The first run creates `foxmq_broker/foxmq.d/` (address-book and keys) automatically. You can add more drones or sentries from the **Flask dashboard** (“Add nodes” section).
 
 **Other options:**
